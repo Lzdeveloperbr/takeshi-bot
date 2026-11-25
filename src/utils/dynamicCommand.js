@@ -59,20 +59,28 @@ export async function dynamicCommand(paramsHandler, startProcess) {
     }
 
     if (!(await isAdmin({ remoteJid, userLid, socket }))) {
-      await socket.groupParticipantsUpdate(remoteJid, [userLid], "remove");
+      try {
+        await socket.sendMessage(remoteJid, {
+          delete: {
+            remoteJid,
+            fromMe: false,
+            id: webMessage.key.id,
+            participant: webMessage.key.participant,
+          },
+        });
 
-      await sendReply(
-        "Anti-link ativado! Você foi removido por enviar um link!"
-      );
+        await socket.groupParticipantsUpdate(remoteJid, [userLid], "remove");
 
-      await socket.sendMessage(remoteJid, {
-        delete: {
-          remoteJid,
-          fromMe: false,
-          id: webMessage.key.id,
-          participant: webMessage.key.participant,
-        },
-      });
+        await sendReply(
+          "Anti-link ativado! Você foi removido por enviar um link!"
+        );
+      } catch (error) {
+        errorLog(`Erro ao aplicar anti-link: ${error.message}`);
+
+        await sendWarningReply(
+          "Anti-link ativado, mas não consegui remover o membro. Verifique se sou administrador do grupo!"
+        );
+      }
 
       return;
     }

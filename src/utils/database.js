@@ -29,9 +29,28 @@ const PREFIX_GROUPS_FILE = "prefix-groups";
 const RESTRICTED_MESSAGES_FILE = "restricted-messages";
 const WELCOME_GROUPS_FILE = "welcome-groups";
 
+function ensureDatabaseDir() {
+  if (!fs.existsSync(databasePath)) {
+    fs.mkdirSync(databasePath, { recursive: true });
+  }
+}
+
+/**
+ * Escrita atômica: grava em um arquivo temporário e depois renomeia.
+ * Evita que um JSON fique pela metade (corrompido) caso o bot seja
+ * encerrado no meio da gravação.
+ */
+function atomicWriteFileSync(fullPath, content) {
+  const tempPath = `${fullPath}.${process.pid}.tmp`;
+
+  fs.writeFileSync(tempPath, content, "utf8");
+  fs.renameSync(tempPath, fullPath);
+}
+
 function createIfNotExists(fullPath, formatIfNotExists = []) {
   if (!fs.existsSync(fullPath)) {
-    fs.writeFileSync(fullPath, JSON.stringify(formatIfNotExists));
+    ensureDatabaseDir();
+    atomicWriteFileSync(fullPath, JSON.stringify(formatIfNotExists));
   }
 }
 
@@ -40,7 +59,30 @@ function readJSON(jsonFile, formatIfNotExists = []) {
 
   createIfNotExists(fullPath, formatIfNotExists);
 
-  return JSON.parse(fs.readFileSync(fullPath, "utf8"));
+  const content = fs.readFileSync(fullPath, "utf8");
+
+  try {
+    return JSON.parse(content);
+  } catch (error) {
+    // Um JSON corrompido não deve derrubar o processamento de todas as
+    // mensagens. Guardamos uma cópia para análise e recriamos o arquivo.
+    const backupPath = `${fullPath}.corrupted-${Date.now()}`;
+
+    try {
+      fs.copyFileSync(fullPath, backupPath);
+    } catch {
+      // Ignora falha ao criar backup.
+    }
+
+    console.error(
+      `[database] ${jsonFile}.json estava corrompido (${error.message}). ` +
+        `Backup salvo em ${path.basename(backupPath)} e arquivo recriado.`,
+    );
+
+    atomicWriteFileSync(fullPath, JSON.stringify(formatIfNotExists));
+
+    return structuredClone(formatIfNotExists);
+  }
 }
 
 function writeJSON(jsonFile, data, formatIfNotExists = []) {
@@ -48,7 +90,7 @@ function writeJSON(jsonFile, data, formatIfNotExists = []) {
 
   createIfNotExists(fullPath, formatIfNotExists);
 
-  fs.writeFileSync(fullPath, JSON.stringify(data, null, 2), "utf8");
+  atomicWriteFileSync(fullPath, JSON.stringify(data, null, 2));
 }
 
 export function setAfkMember(groupId, memberId, reason) {

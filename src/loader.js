@@ -11,6 +11,10 @@ import { onMessagesUpsert } from "./middlewares/onMesssagesUpsert.js";
 import { badMacHandler } from "./utils/badMacHandler.js";
 import { errorLog } from "./utils/logger.js";
 
+// Os handlers globais do processo devem ser registrados uma única vez.
+// Antes, cada reconexão adicionava novos listeners (vazamento de memória).
+let processHandlersRegistered = false;
+
 export function load(socket) {
   const safeEventHandler = async (callback, data, eventName) => {
     try {
@@ -49,6 +53,12 @@ export function load(socket) {
       );
     }
   });
+
+  if (processHandlersRegistered) {
+    return;
+  }
+
+  processHandlersRegistered = true;
 
   process.on("uncaughtException", (error) => {
     if (badMacHandler.handleError(error, "uncaughtException")) {
