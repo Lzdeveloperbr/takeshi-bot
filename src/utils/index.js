@@ -11,7 +11,7 @@ import fs from "node:fs";
 import path from "node:path";
 import readline from "node:readline";
 import { pathToFileURL } from "node:url";
-import { ASSETS_DIR, COMMANDS_DIR, PREFIX, TEMP_DIR } from "../config.js";
+import { ASSETS_DIR, COMMANDS_DIR, OWNER_LID, PREFIX, TEMP_DIR } from "../config.js";
 import { errorLog } from "./logger.js";
 
 export function question(message) {
@@ -96,10 +96,10 @@ export function extractDataFromMessage(webMessage) {
 
   const replyText = replyTextType1 || replyTextType2 || replyTextType3 || "";
 
-  const userLid = webMessage?.key?.participant?.replace(
-    /:[0-9][0-9]|:[0-9]/g,
-    "",
-  );
+  const userLid =
+    webMessage?.key?.participant?.replace(/:[0-9][0-9]|:[0-9]/g, "") ||
+    webMessage?.key?.participantAlt ||
+    (webMessage?.key?.fromMe ? OWNER_LID : null);
 
   const [command, ...args] = fullMessage.split(" ");
   const prefix = command.charAt(0);
