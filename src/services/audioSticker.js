@@ -119,9 +119,11 @@ async function addExif(buffer, metadata) {
   return await img.save(null);
 }
 
+// Corta o centro para preencher o quadrado inteiro (sem barras pretas
+// nas laterais em vídeos em pé ou deitados).
 const SQUARE_FILTER =
-  "scale=512:512:force_original_aspect_ratio=decrease," +
-  "pad=512:512:(ow-iw)/2:(oh-ih)/2:color=0x00000000,setsar=1";
+  "scale=512:512:force_original_aspect_ratio=increase," +
+  "crop=512:512,setsar=1";
 
 /**
  * Converte uma imagem ou vídeo em figurinha WebP 512x512.
