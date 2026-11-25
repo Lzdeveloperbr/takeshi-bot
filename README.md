@@ -473,6 +473,7 @@ Obtenha sua API Key em: [https://linker.devgui.dev](https://linker.devgui.dev)
 | Ligar o bot no grupo | Dono | ❌ |
 | Modificar o prefixo por grupo | Dono | ❌ |
 | Obter o ID do grupo | Dono | ❌ |
+| Diagnóstico técnico do bot e servidor | Dono | ❌ |
 | Abrir grupo | Admin | ❌ |
 | Advertir | Admin | ❌ |
 | Agendar mensagem | Admin | ❌ |
@@ -536,6 +537,8 @@ Obtenha sua API Key em: [https://linker.devgui.dev](https://linker.devgui.dev)
 | Informações de um comando | Membro | ❌ |
 | Instagram download | Membro | ✅ |
 | Ping | Membro | ❌ |
+| Status, uptime e uso de memória | Membro | ❌ |
+| Sorteio aleatório de participantes do grupo (até 10 ganhadores) | Membro | ❌ |
 | Pinterest download (carrossel) | Membro | ✅ |
 | Play áudio | Membro | ✅ |
 | Play vídeo | Membro | ✅ |
