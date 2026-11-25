@@ -2,6 +2,10 @@ import { randomInt } from "node:crypto";
 import { PREFIX } from "../../config.js";
 import { InvalidParameterError, WarningError } from "../../errors/index.js";
 
+function normalizeJid(id) {
+  return id.split(":")[0].split("@")[0];
+}
+
 function shuffle(items) {
   const result = [...items];
 
@@ -38,12 +42,12 @@ export default {
     const botIds = new Set(
       [socket.user?.id, socket.user?.lid]
         .filter(Boolean)
-        .map((id) => id.split(":")[0]),
+        .map(normalizeJid),
     );
 
     const participants = (metadata.participants || [])
       .filter((participant) => participant?.id)
-      .filter((participant) => !botIds.has(participant.id.split(":")[0]));
+      .filter((participant) => !botIds.has(normalizeJid(participant.id)));
 
     if (participants.length < quantity) {
       throw new WarningError(
