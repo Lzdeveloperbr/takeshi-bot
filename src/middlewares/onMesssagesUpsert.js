@@ -40,7 +40,15 @@ export async function onMessagesUpsert({ socket, messages, startProcess }) {
     }
 
     try {
-      if (!webMessage?.key?.remoteJid?.endsWith("@g.us")) {
+      const remoteJid = webMessage?.key?.remoteJid;
+      const isGroup = !!remoteJid?.endsWith("@g.us");
+      const isSupportedChat =
+        isGroup ||
+        remoteJid?.endsWith("@s.whatsapp.net") ||
+        remoteJid?.endsWith("@lid");
+
+      // Processa grupos e conversas privadas; ignora status, canais e broadcasts.
+      if (!isSupportedChat) {
         continue;
       }
 
@@ -48,7 +56,9 @@ export async function onMessagesUpsert({ socket, messages, startProcess }) {
 
       // Registra o envelope (id -> autor/estado) de TODA mensagem de grupo,
       // para corroborar marcações de pagamento e impedir forja (banir inocente).
-      recordMessageEnvelope(webMessage, hasPaymentMessage(webMessage));
+      if (isGroup) {
+        recordMessageEnvelope(webMessage, hasPaymentMessage(webMessage));
+      }
 
       if (webMessage?.message) {
         messageHandler(socket, webMessage);
@@ -58,7 +68,7 @@ export async function onMessagesUpsert({ socket, messages, startProcess }) {
         continue;
       }
 
-      if (isAddOrLeave.includes(webMessage.messageStubType)) {
+      if (isGroup && isAddOrLeave.includes(webMessage.messageStubType)) {
         let action = "";
         if (webMessage.messageStubType === GROUP_PARTICIPANT_ADD) {
           action = "add";
@@ -85,6 +95,7 @@ export async function onMessagesUpsert({ socket, messages, startProcess }) {
         return;
       }
       if (
+        isGroup &&
         checkIfMemberIsMuted(
           webMessage?.key?.remoteJid,
           webMessage?.key?.participant?.replace(/:[0-9][0-9]|:[0-9]/g, ""),
