@@ -248,6 +248,16 @@ Rules:
 - to fix an upstream change, update the anchor or replacement in the single script and
   rerun `npm run patch:baileys`
 
+### Sound stickers (runtime proto extension)
+
+`src/services/audioSticker.js` sends WhatsApp's native sound stickers
+(`Message.audioStickerMessage` = field 134, a `FutureProofMessage` wrapping a
+`stickerMessage` whose `audioMessage` is field 26). Baileys rc14 does not know these
+fields, so `installAudioStickerProto()` wraps `proto.Message.encode` and
+`proto.Message.StickerMessage.encode` at runtime instead of patching node_modules.
+The message is sent with `socket.relayMessage` because `generateWAMessageFromContent`
+drops unknown fields. Remove the wrapper once Baileys ships these fields.
+
 ## HOSTING_AND_PTERODACTYL
 
 The project README currently highlights the supported hosts in its installation section.
