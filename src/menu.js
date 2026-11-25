@@ -71,6 +71,7 @@ export function menuMessage(groupJid) {
 ▢ • ${prefix}revelar
 ▢ • ${prefix}saldo
 ▢ • ${prefix}set-proxy
+▢ • ${prefix}set-regras
 ▢ • ${prefix}unmute
 ▢ • ${prefix}welcome (1/0)
 ▢
@@ -105,6 +106,20 @@ export function menuMessage(groupJid) {
 ▢
 ╰━━─「🚀」─━━
 
+╭━━⪩ UTILIDADES ⪨━━
+▢
+▢ • ${prefix}admins
+▢ • ${prefix}calc
+▢ • ${prefix}clima
+▢ • ${prefix}cotacao
+▢ • ${prefix}lembrete
+▢ • ${prefix}qrcode
+▢ • ${prefix}regras
+▢ • ${prefix}senha
+▢ • ${prefix}wiki
+▢
+╰━━─「🧰」─━━
+
 ╭━━⪩ DOWNLOADS ⪨━━
 ▢
 ▢ • ${prefix}facebook
@@ -125,10 +140,16 @@ export function menuMessage(groupJid) {
 ▢ • ${prefix}abracar
 ▢ • ${prefix}beijar
 ▢ • ${prefix}dado
+▢ • ${prefix}escolher
 ▢ • ${prefix}jantar
 ▢ • ${prefix}lutar
 ▢ • ${prefix}matar
+▢ • ${prefix}moeda
+▢ • ${prefix}pergunta
+▢ • ${prefix}ppt
+▢ • ${prefix}ship
 ▢ • ${prefix}socar
+▢ • ${prefix}tapa
 ▢
 ╰━━─「🎡」─━━
 
