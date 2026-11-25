@@ -523,7 +523,7 @@ Obtenha sua API Key em: [https://linker.devgui.dev](https://linker.devgui.dev)
 | Espelhar imagem | Membro | ❌ |
 | Facebook download | Membro | ✅ |
 | Fake chat | Membro | ❌ |
-| Figurinha animada para GIF | Membro | ✅ |
+| Figurinha animada para GIF | Membro | ✅ |\n| Figurinha com áudio (imagem e áudio enviados em sequência) | Membro | ❌ |
 | Figurinha de texto animada | Membro | ✅ |
 | Geração de imagens com IA | Membro | ✅ |
 | Gerar link | Membro | ❌ |
