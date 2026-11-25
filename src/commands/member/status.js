@@ -34,7 +34,7 @@ export default {
     const memoryPercent = ((totalMemory - freeMemory) / totalMemory) * 100;
 
     await sendReply(
-      `🟢 *STATUS DO TAKESHI BOT*
+      `🖥️ *STATUS DO PROCESSO TAKESHI BOT*
 
 ⏱️ *Tempo online:* ${formatUptime(process.uptime())}
 ⚙️ *Node.js:* ${process.version}
