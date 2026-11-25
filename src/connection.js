@@ -55,6 +55,111 @@ logger.level = "error";
 
 const msgRetryCounterCache = new NodeCache();
 
+// Cache de metadados de grupos. Evita uma consulta ao WhatsApp a cada
+// mensagem (verificação de admin, anti-link, etc.), o que reduz a latência
+// e o risco de erros "rate-overlimit". É invalidado automaticamente quando
+// o grupo ou seus participantes mudam.
+const groupMetadataCache = new NodeCache({
+  stdTTL: 5 * 60,
+  checkperiod: 60,
+  useClones: false,
+});
+
+const MAX_RECONNECT_DELAY_MS = 60_000;
+let reconnectAttempts = 0;
+let reconnectTimer = null;
+
+function scheduleReconnect() {
+  if (reconnectTimer) {
+    return;
+  }
+
+  const delay = Math.min(
+    1_000 * 2 ** reconnectAttempts,
+    MAX_RECONNECT_DELAY_MS,
+  );
+
+  reconnectAttempts++;
+
+  infoLog(
+    `Tentando reconectar em ${Math.round(delay / 1000)}s (tentativa ${reconnectAttempts})...`,
+  );
+
+  reconnectTimer = setTimeout(async () => {
+    reconnectTimer = null;
+
+    try {
+      const newSocket = await connect();
+      load(newSocket);
+    } catch (error) {
+      errorLog(`Falha ao reconectar: ${error.message}`);
+      scheduleReconnect();
+    }
+  }, delay);
+}
+
+function invalidateGroupMetadata(jid) {
+  if (jid) {
+    groupMetadataCache.del(jid);
+  }
+}
+
+/**
+ * Envolve as funções de grupo do socket para usar/invalidar o cache.
+ */
+function attachGroupMetadataCache(socket) {
+  const originalGroupMetadata = socket.groupMetadata.bind(socket);
+
+  socket.groupMetadata = async (jid) => {
+    const cached = groupMetadataCache.get(jid);
+
+    if (cached) {
+      return cached;
+    }
+
+    const metadata = await originalGroupMetadata(jid);
+    groupMetadataCache.set(jid, metadata);
+
+    return metadata;
+  };
+
+  const mutatingGroupFunctions = [
+    "groupParticipantsUpdate",
+    "groupUpdateSubject",
+    "groupUpdateDescription",
+    "groupSettingUpdate",
+    "groupToggleEphemeral",
+    "groupMemberAddMode",
+    "groupJoinApprovalMode",
+  ];
+
+  for (const name of mutatingGroupFunctions) {
+    if (typeof socket[name] !== "function") {
+      continue;
+    }
+
+    const original = socket[name].bind(socket);
+
+    socket[name] = async (jid, ...args) => {
+      try {
+        return await original(jid, ...args);
+      } finally {
+        invalidateGroupMetadata(jid);
+      }
+    };
+  }
+
+  socket.ev.on("groups.update", (updates) => {
+    for (const update of updates) {
+      invalidateGroupMetadata(update?.id);
+    }
+  });
+
+  socket.ev.on("group-participants.update", (update) => {
+    invalidateGroupMetadata(update?.id);
+  });
+}
+
 function formatPairingCode(code) {
   if (!code) return code;
 
@@ -96,7 +201,10 @@ export async function connect() {
     emitOwnEvents: true,
     msgRetryCounterCache,
     shouldSyncHistoryMessage: () => false,
+    cachedGroupMetadata: async (jid) => groupMetadataCache.get(jid),
   });
+
+  attachGroupMetadataCache(socket);
 
   if (!socket.authState.creds.registered) {
     clearScreenWithBanner();
@@ -140,8 +248,7 @@ export async function connect() {
             badMacHandler.clearProblematicSessionFiles();
             badMacHandler.resetErrorCount();
 
-            const newSocket = await connect();
-            load(newSocket);
+            scheduleReconnect();
             return;
           }
         }
@@ -149,9 +256,12 @@ export async function connect() {
 
       if (statusCode === DisconnectReason.loggedOut) {
         errorLog("Bot desconectado!");
+        errorLog(
+          'A sessão foi encerrada no WhatsApp. Apague a pasta "assets/auth/baileys" (ou rode "bash reset-qr-auth.sh") e inicie o bot novamente para parear.',
+        );
       } else {
         switch (statusCode) {
-          case DisconnectReason.badSession:
+          case DisconnectReason.badSession: {
             warningLog("Sessão inválida!");
 
             const sessionError = new Error("Bad session detected");
@@ -165,6 +275,7 @@ export async function connect() {
               }
             }
             break;
+          }
           case DisconnectReason.connectionClosed:
             warningLog("Conexão fechada!");
             break;
@@ -181,15 +292,14 @@ export async function connect() {
             warningLog("Conexão proibida!");
             break;
           case DisconnectReason.restartRequired:
-            infoLog('Me reinicie por favor! Digite "npm start".');
+            infoLog("Reinício necessário, reconectando...");
             break;
           case DisconnectReason.unavailableService:
             warningLog("Serviço indisponível!");
             break;
         }
 
-        const newSocket = await connect();
-        load(newSocket);
+        scheduleReconnect();
       }
     } else if (connection === "open") {
       clearScreenWithBanner();
@@ -202,6 +312,7 @@ Verifique o prefixo, digitando a palavra "prefixo" no WhatsApp.
 O prefixo padrão definido no config.js é ${PREFIX}`,
       );
       badMacHandler.resetErrorCount();
+      reconnectAttempts = 0;
     } else if (connection === "connecting") {
       infoLog("Conectando...");
     } else {

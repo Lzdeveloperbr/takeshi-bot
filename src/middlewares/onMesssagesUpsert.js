@@ -32,7 +32,7 @@ export async function onMessagesUpsert({ socket, messages, startProcess }) {
     if (DEVELOPER_MODE) {
       infoLog(
         `\n\n⪨========== [ MENSAGEM RECEBIDA ] ==========⪩ \n\n${JSON.stringify(
-          messages,
+          webMessage,
           null,
           2,
         )}`,
@@ -92,7 +92,7 @@ export async function onMessagesUpsert({ socket, messages, startProcess }) {
           action,
         });
 
-        return;
+        continue;
       }
       if (
         isGroup &&
@@ -118,7 +118,7 @@ export async function onMessagesUpsert({ socket, messages, startProcess }) {
           );
         }
 
-        return;
+        continue;
       }
 
       const commonFunctions = loadCommonFunctions({ socket, webMessage });
