@@ -1,5 +1,7 @@
 import fs from "node:fs";
-import { PREFIX, BOT_EMOJI, BOT_NAME } from "../../config.js";
+import path from "node:path";
+import { exec } from "node:child_process";
+import { PREFIX, BOT_EMOJI, BOT_NAME, TEMP_DIR } from "../../config.js";
 import { InvalidParameterError, WarningError } from "../../errors/index.js";
 import { processStaticSticker } from "../../services/sticker.js";
 import { getRandomName, getUserName, removeFileIfExists } from "../../utils/index.js";
@@ -28,7 +30,7 @@ export default {
   name: "figaudio",
   description: "Cria uma figurinha e envia o áudio correspondente em seguida.",
   commands: ["figaudio", "sticker-audio", "figurinha-audio"],
-  usage: `${PREFIX}figaudio (responda primeiro à imagem e depois ao áudio)`,
+  usage: `${PREFIX}figaudio (envie um vídeo com áudio ou responda primeiro à imagem e depois ao áudio)`,
   /**
    * Fluxo em duas etapas:
    * 1. Responda a uma imagem com /figaudio.
@@ -40,11 +42,13 @@ export default {
   handle: async ({
     isImage,
     isAudio,
+    isVideo,
     webMessage,
     remoteJid,
     userLid,
     downloadImage,
     downloadAudio,
+    downloadVideo,
     sendReply,
     sendWaitReact,
     sendSuccessReact,
@@ -52,6 +56,70 @@ export default {
     sendAudioFromFile,
   }) => {
     const key = getSessionKey(remoteJid, userLid, webMessage);
+
+    // Um único vídeo com imagem e áudio: extrai um quadro para a figurinha
+    // e a faixa sonora para enviar as duas mídias em sequência.
+    if (isVideo) {
+      await sendWaitReact();
+      let videoPath = null;
+      let imagePath = null;
+      let audioPath = null;
+      let stickerPath = null;
+
+      const runFfmpeg = (command) =>
+        new Promise((resolve, reject) => {
+          exec(command, (error, _stdout, stderr) => {
+            if (error) {
+              reject(new Error(stderr || error.message));
+            } else {
+              resolve();
+            }
+          });
+        });
+
+      try {
+        videoPath = await downloadVideo(webMessage, getRandomName("mp4"));
+        if (!videoPath || !fs.existsSync(videoPath)) {
+          throw new WarningError("Não consegui baixar o vídeo. Tente novamente.");
+        }
+
+        imagePath = path.resolve(TEMP_DIR, getRandomName("png"));
+        audioPath = path.resolve(TEMP_DIR, getRandomName("mp3"));
+
+        await runFfmpeg(
+          `ffmpeg -y -i "${videoPath}" -frames:v 1 -q:v 2 "${imagePath}"`,
+        );
+        await runFfmpeg(
+          `ffmpeg -y -i "${videoPath}" -vn -c:a libmp3lame -q:a 4 "${audioPath}"`,
+        );
+
+        if (!fs.existsSync(imagePath) || !fs.existsSync(audioPath)) {
+          throw new WarningError(
+            "O vídeo precisa conter imagem e áudio. Envie outro vídeo.",
+          );
+        }
+
+        const metadata = {
+          username: getUserName(webMessage, userLid),
+          botName: `${BOT_EMOJI} ${BOT_NAME}`,
+        };
+        stickerPath = await processStaticSticker(imagePath, metadata);
+        await sendStickerFromFile(stickerPath, true);
+        await sendAudioFromFile(audioPath, false);
+        await sendSuccessReact();
+      } catch (error) {
+        if (error instanceof WarningError) throw error;
+        throw new WarningError(
+          "Não consegui transformar esse vídeo em figurinha com áudio. Confira se ele tem som e tente novamente.",
+        );
+      } finally {
+        removeFileIfExists(videoPath);
+        removeFileIfExists(imagePath);
+        removeFileIfExists(audioPath);
+        removeFileIfExists(stickerPath);
+      }
+      return;
+    }
 
     if (isImage && !isAudio) {
       await sendWaitReact();
