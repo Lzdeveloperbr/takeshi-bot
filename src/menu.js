@@ -27,6 +27,7 @@ export function menuMessage(groupJid) {
 ▢
 ▢ • ${prefix}exec
 ▢ • ${prefix}get-group-id
+▢ • ${prefix}diagnostico
 ▢ • ${prefix}off
 ▢ • ${prefix}on
 ▢ • ${prefix}set-menu-image
@@ -93,6 +94,8 @@ export function menuMessage(groupJid) {
 ▢ • ${prefix}removebg
 ▢ • ${prefix}sticker
 ▢ • ${prefix}suporte
+▢ • ${prefix}status
+▢ • ${prefix}sorteio [quantidade]
 ▢ • ${prefix}to-gif
 ▢ • ${prefix}to-image
 ▢ • ${prefix}to-mp3
