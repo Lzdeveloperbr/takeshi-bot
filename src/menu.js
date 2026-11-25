@@ -93,7 +93,7 @@ export function menuMessage(groupJid) {
 ▢ • ${prefix}rename
 ▢ • ${prefix}removebg
 ▢ • ${prefix}sticker
-▢ • ${prefix}figaudio
+▢ • ${prefix}som (figurinha com som)
 ▢ • ${prefix}suporte
 ▢ • ${prefix}status
 ▢ • ${prefix}sorteio [quantidade]
