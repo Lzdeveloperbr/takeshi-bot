@@ -92,7 +92,8 @@ export async function connect() {
     maxMsgRetryCount: 5,
     markOnlineOnConnect: true,
     syncFullHistory: false,
-    emitOwnEvents: false,
+    // Permite que comandos enviados pelo próprio número sejam processados.
+    emitOwnEvents: true,
     msgRetryCounterCache,
     shouldSyncHistoryMessage: () => false,
   });
