@@ -101,7 +101,13 @@ export function extractDataFromMessage(webMessage) {
     webMessage?.key?.participantAlt ||
     (webMessage?.key?.fromMe ? OWNER_LID : null);
 
-  const [command, ...args] = fullMessage.split(" ");
+  // O comando termina no primeiro espaço OU quebra de linha
+  // (ex.: "/set-regras" seguido de Enter e o texto das regras).
+  const firstSpace = fullMessage.search(/\s/);
+  const command =
+    firstSpace === -1 ? fullMessage : fullMessage.slice(0, firstSpace);
+  const args =
+    firstSpace === -1 ? [] : fullMessage.slice(firstSpace + 1).split(" ");
   const prefix = command.charAt(0);
 
   const commandWithoutPrefix = command.replace(new RegExp(`^[${PREFIX}]+`), "");

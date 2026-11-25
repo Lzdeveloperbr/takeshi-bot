@@ -22,6 +22,7 @@ const AUTO_STICKER_GROUPS_FILE = "auto-sticker-groups";
 const CONFIG_FILE = "config";
 const EXIT_GROUPS_FILE = "exit-groups";
 const GROUP_RESTRICTIONS_FILE = "group-restrictions";
+const GROUP_RULES_FILE = "group-rules";
 const INACTIVE_GROUPS_FILE = "inactive-groups";
 const MUTE_FILE = "muted";
 const ONLY_ADMINS_FILE = "only-admins";
@@ -578,4 +579,32 @@ export function getSpiderApiToken() {
   const config = readJSON(filename, {});
 
   return config.spider_api_token || SPIDER_API_TOKEN;
+}
+
+export function setGroupRules(groupId, rules) {
+  const groupRules = readJSON(GROUP_RULES_FILE, {});
+
+  groupRules[groupId] = rules.trim();
+
+  writeJSON(GROUP_RULES_FILE, groupRules, {});
+}
+
+export function getGroupRules(groupId) {
+  const groupRules = readJSON(GROUP_RULES_FILE, {});
+
+  return groupRules[groupId] || null;
+}
+
+export function removeGroupRules(groupId) {
+  const groupRules = readJSON(GROUP_RULES_FILE, {});
+
+  if (!groupRules[groupId]) {
+    return false;
+  }
+
+  delete groupRules[groupId];
+
+  writeJSON(GROUP_RULES_FILE, groupRules, {});
+
+  return true;
 }
