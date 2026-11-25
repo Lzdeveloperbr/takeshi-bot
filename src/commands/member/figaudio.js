@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { PREFIX, TEMP_DIR, BOT_EMOJI, BOT_NAME } from "../../config.js";
+import { PREFIX, BOT_EMOJI, BOT_NAME } from "../../config.js";
 import { InvalidParameterError, WarningError } from "../../errors/index.js";
 import { processStaticSticker } from "../../services/sticker.js";
 import { getRandomName, getUserName, removeFileIfExists } from "../../utils/index.js";
