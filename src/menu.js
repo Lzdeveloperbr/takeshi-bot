@@ -40,8 +40,13 @@ export function menuMessage(groupJid) {
 ╭━━⪩ ADMINS ⪨━━
 ▢
 ▢ • ${prefix}abrir
+▢ • ${prefix}add
+▢ • ${prefix}add-palavra
 ▢ • ${prefix}add-auto-responder
 ▢ • ${prefix}agendar-mensagem
+▢ • ${prefix}anti-flood (1/0)
+▢ • ${prefix}anti-palavra (1/0)
+▢ • ${prefix}aprovar
 ▢ • ${prefix}anti-audio (1/0)
 ▢ • ${prefix}anti-call (1/0)
 ▢ • ${prefix}anti-document (1/0)
@@ -59,6 +64,7 @@ export function menuMessage(groupJid) {
 ▢ • ${prefix}ban
 ▢ • ${prefix}delete
 ▢ • ${prefix}delete-auto-responder
+▢ • ${prefix}del-palavra
 ▢ • ${prefix}exit (1/0)
 ▢ • ${prefix}fechar
 ▢ • ${prefix}inativos
@@ -68,11 +74,15 @@ export function menuMessage(groupJid) {
 ▢ • ${prefix}list-auto-responder
 ▢ • ${prefix}mute
 ▢ • ${prefix}only-admin (1/0)
+▢ • ${prefix}palavras
 ▢ • ${prefix}promover
 ▢ • ${prefix}rebaixar
 ▢ • ${prefix}reset-rank
+▢ • ${prefix}revogar-link
 ▢ • ${prefix}revelar
 ▢ • ${prefix}saldo
+▢ • ${prefix}set-desc
+▢ • ${prefix}set-foto
 ▢ • ${prefix}set-proxy
 ▢ • ${prefix}set-regras
 ▢ • ${prefix}unmute
@@ -86,9 +96,11 @@ export function menuMessage(groupJid) {
 ▢ • ${prefix}brat
 ▢ • ${prefix}bratvid
 ▢ • ${prefix}cep
+▢ • ${prefix}enquete
 ▢ • ${prefix}exemplos-de-mensagens
 ▢ • ${prefix}fake-chat
 ▢ • ${prefix}gerar-link
+▢ • ${prefix}grupo
 ▢ • ${prefix}info
 ▢ • ${prefix}meu-lid
 ▢ • ${prefix}painel (botões)
@@ -161,19 +173,36 @@ export function menuMessage(groupJid) {
 ▢
 ▢ • ${prefix}abracar
 ▢ • ${prefix}beijar
-▢ • ${prefix}dado
+▢ • ${prefix}cantada
+▢ • ${prefix}casal-do-dia
+▢ • ${prefix}curiosidade
 ▢ • ${prefix}escolher
+▢ • ${prefix}eu-nunca
 ▢ • ${prefix}jantar
 ▢ • ${prefix}lutar
 ▢ • ${prefix}matar
-▢ • ${prefix}moeda
 ▢ • ${prefix}pergunta
-▢ • ${prefix}ppt
+▢ • ${prefix}piada
 ▢ • ${prefix}ship
 ▢ • ${prefix}socar
 ▢ • ${prefix}tapa
+▢ • ${prefix}top5
+▢ • ${prefix}vd (verdade ou desafio)
 ▢
 ╰━━─「🎡」─━━
+
+╭━━⪩ JOGOS ⪨━━
+▢
+▢ • ${prefix}adivinhar
+▢ • ${prefix}chute
+▢ • ${prefix}dado
+▢ • ${prefix}moeda
+▢ • ${prefix}placar
+▢ • ${prefix}ppt
+▢ • ${prefix}quiz
+▢ • ${prefix}r (responder o quiz)
+▢
+╰━━─「🎮」─━━
 
 ╭━━⪩ IA ⪨━━
 ▢
@@ -269,21 +298,38 @@ const MENU_SECTIONS = [
     ],
   },
   {
-    title: "🎮 Brincadeiras",
+    title: "🎮 Jogos",
     rows: [
-      { title: "Cara ou coroa", run: "moeda" },
+      { title: "Quiz", run: "quiz" },
+      { title: "Adivinhe o número", run: "adivinhar" },
+      { title: "Placar dos jogos", run: "placar" },
+      { title: "Verdade ou desafio", run: "vd" },
+      { title: "Eu nunca", run: "eu-nunca" },
       { title: "Pedra, papel e tesoura", run: "ppt pedra" },
-      { title: "Bola 8 mágica", info: "pergunta" },
-      { title: "Ship (casal)", info: "ship" },
-      { title: "Escolher entre opções", info: "escolher" },
+      { title: "Cara ou coroa", run: "moeda" },
       { title: "Dado", info: "dado" },
+    ],
+  },
+  {
+    title: "😂 Brincadeiras",
+    rows: [
+      { title: "Piada", run: "piada" },
+      { title: "Curiosidade", run: "curiosidade" },
+      { title: "Cantada", run: "cantada" },
+      { title: "Casal do dia", run: "casal-do-dia" },
+      { title: "Top 5 do grupo", info: "top5" },
+      { title: "Ship (casal)", info: "ship" },
+      { title: "Bola 8 mágica", info: "pergunta" },
+      { title: "Escolher entre opções", info: "escolher" },
       { title: "Número aleatório", run: "aleatorio" },
       { title: "Signo", info: "signo" },
     ],
   },
   {
-    title: "ℹ️ Bot",
+    title: "ℹ️ Bot e grupo",
     rows: [
+      { title: "Informações do grupo", run: "grupo" },
+      { title: "Criar enquete", info: "enquete" },
       { title: "Ping", run: "ping" },
       { title: "Status do bot", run: "status" },
       { title: "Meu perfil", run: "perfil" },
