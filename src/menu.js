@@ -6,6 +6,7 @@
 import pkg from "../package.json" with { type: "json" };
 import { BOT_NAME } from "./config.js";
 import { getPrefix } from "./utils/database.js";
+import { listButton, quickReply } from "./utils/buttons.js";
 import { readMore } from "./utils/index.js";
 
 export function menuMessage(groupJid) {
@@ -88,6 +89,7 @@ export function menuMessage(groupJid) {
 ▢ • ${prefix}gerar-link
 ▢ • ${prefix}info
 ▢ • ${prefix}meu-lid
+▢ • ${prefix}painel (botões)
 ▢ • ${prefix}perfil
 ▢ • ${prefix}ping
 ▢ • ${prefix}raw-message
@@ -178,4 +180,99 @@ export function menuMessage(groupJid) {
 ▢ • ${prefix}rip
 ▢
 ╰━━─「❇」─━━`;
+}
+
+/**
+ * Painel de botões do menu.
+ *
+ * Itens com "run" executam o comando na hora.
+ * Itens com "info" mostram como usar o comando (para os que precisam de texto,
+ * link ou mídia). O valor de "info" é o nome do arquivo do comando.
+ * Edite à vontade: cada seção aceita até 10 itens.
+ */
+const MENU_SECTIONS = [
+  {
+    title: "⬇️ Downloads",
+    rows: [
+      { title: "Música do YouTube", info: "play-audio" },
+      { title: "Vídeo do YouTube", info: "play-video" },
+      { title: "TikTok", info: "tik-tok" },
+      { title: "Instagram", info: "instagram" },
+      { title: "Pesquisar no YouTube", info: "yt-search" },
+    ],
+  },
+  {
+    title: "🖼️ Figurinhas",
+    rows: [
+      { title: "Figurinha", info: "sticker" },
+      { title: "Figurinha com som", info: "figaudio" },
+      { title: "Figurinha de texto (attp)", info: "attp" },
+      { title: "Figurinha brat", info: "brat" },
+      { title: "Figurinha para imagem", info: "to-image" },
+    ],
+  },
+  {
+    title: "🤖 Inteligência artificial",
+    rows: [
+      { title: "Gemini", info: "gemini" },
+      { title: "GPT-5 Mini", info: "gpt-5-mini" },
+      { title: "Gerar imagem (Flux)", info: "flux" },
+      { title: "Texto para voz", info: "tts" },
+    ],
+  },
+  {
+    title: "🧰 Utilidades",
+    rows: [
+      { title: "Cotação do dólar", run: "cotacao" },
+      { title: "Gerar senha forte", run: "senha" },
+      { title: "Regras do grupo", run: "regras" },
+      { title: "Chamar os admins", run: "admins" },
+      { title: "Calculadora", info: "calc" },
+      { title: "Clima", info: "clima" },
+      { title: "Wikipédia", info: "wiki" },
+      { title: "Lembrete", info: "lembrete" },
+      { title: "QR Code", info: "qrcode" },
+    ],
+  },
+  {
+    title: "🎮 Brincadeiras",
+    rows: [
+      { title: "Cara ou coroa", run: "moeda" },
+      { title: "Pedra, papel e tesoura", run: "ppt pedra" },
+      { title: "Bola 8 mágica", info: "pergunta" },
+      { title: "Ship (casal)", info: "ship" },
+      { title: "Escolher entre opções", info: "escolher" },
+      { title: "Dado", info: "dado" },
+    ],
+  },
+  {
+    title: "ℹ️ Bot",
+    rows: [
+      { title: "Ping", run: "ping" },
+      { title: "Status do bot", run: "status" },
+      { title: "Meu perfil", run: "perfil" },
+      { title: "Meu LID", run: "meu-lid" },
+    ],
+  },
+];
+
+export function menuButtons(groupJid) {
+  const prefix = getPrefix(groupJid);
+
+  const sections = MENU_SECTIONS.map((section) => ({
+    title: section.title,
+    rows: section.rows.map((row) => ({
+      title: row.title,
+      description: row.run
+        ? `Toque para usar (${prefix}${row.run.split(" ")[0]})`
+        : `Toque para ver como usar (${prefix}${row.info})`,
+      id: row.run ? `${prefix}${row.run}` : `${prefix}info ${row.info}`,
+    })),
+  }));
+
+  return [
+    listButton("📋 Escolher comando", sections),
+    quickReply("🏓 Ping", `${prefix}ping`),
+    quickReply("💱 Cotação", `${prefix}cotacao`),
+  ];
 }

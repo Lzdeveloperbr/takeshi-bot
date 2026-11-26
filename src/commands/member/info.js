@@ -25,10 +25,12 @@ export default {
 
     try {
       const commandFiles = await readDirectoryRecursive(COMMANDS_DIR);
-      const cmdFile = commandFiles.find((file) => {
-        const fileName = path.basename(file, path.extname(file));
-        return fileName === commandName || file.includes(commandName);
-      });
+      const fileNameOf = (file) => path.basename(file, path.extname(file));
+
+      // Prioriza o nome exato do arquivo; só depois busca por trecho do nome.
+      const cmdFile =
+        commandFiles.find((file) => fileNameOf(file) === commandName) ||
+        commandFiles.find((file) => fileNameOf(file).includes(commandName));
 
       if (!cmdFile) {
         throw new WarningError(`Comando "${commandName}" não encontrado.`);

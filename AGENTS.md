@@ -115,6 +115,12 @@ Useful `handle()` capabilities:
 - download helpers: `downloadImage()`, `downloadVideo()`, `downloadAudio()`, `downloadSticker()`
 - context values: `args`, `fullArgs`, `fullMessage`, `remoteJid`, `replyText`, `userLid`
 
+Interactive buttons: use `src/utils/buttons.js` (`quickReply`, `listButton`, `urlButton`,
+`copyButton`, `sendButtons`). A tapped button returns its `id`, which the bot parses as a
+typed message, so ids are commands (e.g. `/ping`). The menu's button panel is defined by
+`MENU_SECTIONS` / `menuButtons()` in `src/menu.js`. Buttons do not render on WhatsApp
+Business, so never send information only inside a buttons message.
+
 Custom global logic should go into `src/middlewares/customMiddleware.js`.
 
 Use it for:
