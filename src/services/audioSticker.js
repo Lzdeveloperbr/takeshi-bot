@@ -16,7 +16,13 @@
  * A figurinha e o áudio são enviados criptografados separadamente (cada um
  * com sua própria mediaKey) e o áudio vai embutido dentro da figurinha.
  */
-import { generateMessageIDV2, prepareWAMessageMedia, proto } from "baileys";
+import {
+  generateMessageIDV2,
+  getContentType,
+  normalizeMessageContent,
+  prepareWAMessageMedia,
+  proto,
+} from "baileys";
 import { execFile } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -227,6 +233,35 @@ async function buildStickerAudio(inputPath, seconds) {
  * @param {{ username: string, botName: string }} params.metadata
  * @param {object} [params.quoted]     Mensagem a ser respondida.
  */
+/** Executa uma etapa e, se falhar, diz qual etapa foi (ajuda a achar o problema). */
+async function step(name, fn) {
+  try {
+    return await fn();
+  } catch (error) {
+    const detail = (error?.message || String(error)).split("\n").filter(Boolean).slice(-2).join(" ");
+    const wrapped = new Error(`${name}: ${detail}`);
+    wrapped.step = name;
+    wrapped.cause = error;
+    throw wrapped;
+  }
+}
+
+/**
+ * Cria a figurinha. Se a versão animada falhar (ex.: ffmpeg sem suporte a
+ * WebP animado), usa o primeiro quadro como figurinha estática.
+ */
+async function buildStickerWithFallback(visualPath, { animated, seconds }) {
+  if (animated) {
+    try {
+      return { buffer: await buildStickerWebp(visualPath, { animated: true, seconds }), animated: true };
+    } catch {
+      // Tenta a versão estática abaixo.
+    }
+  }
+
+  return { buffer: await buildStickerWebp(visualPath, { animated: false, seconds }), animated: false };
+}
+
 export async function sendAudioSticker({
   socket,
   remoteJid,
@@ -244,35 +279,61 @@ export async function sendAudioSticker({
     Math.min(MAX_AUDIO_STICKER_SECONDS, audioDuration || MAX_AUDIO_STICKER_SECONDS),
   );
 
-  const [stickerRaw, audioBuffer] = await Promise.all([
-    buildStickerWebp(visualPath, { animated, seconds }),
-    buildStickerAudio(audioPath, seconds),
+  const [sticker, audioBuffer] = await Promise.all([
+    step("criar a figurinha", () => buildStickerWithFallback(visualPath, { animated, seconds })),
+    step("converter o áudio", () => buildStickerAudio(audioPath, seconds)),
   ]);
 
-  const stickerBuffer = await addExif(stickerRaw, metadata);
+  if (!audioBuffer?.length) {
+    throw new Error("converter o áudio: o áudio ficou vazio");
+  }
+
+  const stickerBuffer = await step("colocar os dados na figurinha", () =>
+    addExif(sticker.buffer, metadata).catch(() => sticker.buffer),
+  );
   const upload = socket.waUploadToServer;
 
-  const [{ stickerMessage }, { audioMessage }] = await Promise.all([
-    prepareWAMessageMedia({ sticker: stickerBuffer }, { upload }),
-    prepareWAMessageMedia(
-      { audio: audioBuffer, mimetype: "audio/ogg; codecs=opus", ptt: false, seconds: Math.round(seconds) },
-      { upload },
-    ),
-  ]);
+  const [{ stickerMessage }, { audioMessage }] = await step("enviar a mídia ao WhatsApp", () =>
+    Promise.all([
+      prepareWAMessageMedia({ sticker: stickerBuffer }, { upload }),
+      prepareWAMessageMedia(
+        { audio: audioBuffer, mimetype: "audio/ogg; codecs=opus", ptt: false, seconds: Math.round(seconds) },
+        { upload },
+      ),
+    ]),
+  );
 
-  stickerMessage.isAnimated = animated && stickerBuffer.includes(Buffer.from("ANIM"));
+  stickerMessage.isAnimated = sticker.animated && stickerBuffer.includes(Buffer.from("ANIM"));
   stickerMessage.mimetype = "image/webp";
   stickerMessage.width = 512;
   stickerMessage.height = 512;
   audioMessage.seconds = Math.round(seconds);
   stickerMessage.audioMessage = audioMessage;
 
-  if (quoted?.key?.id && quoted?.message) {
-    stickerMessage.contextInfo = {
-      stanzaId: quoted.key.id,
-      participant: quoted.key.participant || quoted.key.remoteJid,
-      quotedMessage: quoted.message,
-    };
+  const contextInfo = {};
+
+  // Cita a mensagem original (sem o "envelope" de mensagem temporária/visualização única).
+  const quotedContent = normalizeMessageContent(quoted?.message);
+  const quotedType = quotedContent && getContentType(quotedContent);
+
+  if (quoted?.key?.id && quotedType) {
+    contextInfo.stanzaId = quoted.key.id;
+    contextInfo.participant = quoted.key.participant || quoted.key.remoteJid;
+    contextInfo.quotedMessage = { [quotedType]: quotedContent[quotedType] };
+  }
+
+  // Em grupos com mensagens temporárias, a figurinha precisa do mesmo prazo.
+  if (remoteJid.endsWith("@g.us")) {
+    try {
+      const { ephemeralDuration } = await socket.groupMetadata(remoteJid);
+      if (ephemeralDuration) contextInfo.expiration = ephemeralDuration;
+    } catch {
+      // Sem metadados do grupo, segue sem prazo.
+    }
+  }
+
+  if (Object.keys(contextInfo).length) {
+    stickerMessage.contextInfo = contextInfo;
   }
 
   const message = {
@@ -283,7 +344,9 @@ export async function sendAudioSticker({
 
   const messageId = generateMessageIDV2(socket.user?.id);
 
-  await socket.relayMessage(remoteJid, message, { messageId });
+  await step("enviar a figurinha", () =>
+    socket.relayMessage(remoteJid, message, { messageId }),
+  );
 
-  return { messageId, seconds };
+  return { messageId, seconds, stickerBuffer, audioBuffer, animated: sticker.animated };
 }
