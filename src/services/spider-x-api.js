@@ -8,6 +8,14 @@ import axios from "axios";
 
 import * as config from "../config.js";
 import { getSpiderApiToken } from "../utils/database.js";
+import {
+  freeImageAI,
+  freeTextAI,
+  freeTTS,
+  ytDlpDownload,
+  ytDlpPlay,
+  ytDlpSearch,
+} from "./free-api.js";
 
 const { SPIDER_API_BASE_URL } = config;
 
@@ -53,7 +61,7 @@ function requireSpiderApiToken() {
   return token;
 }
 
-export async function play(type, search) {
+async function spider_play(type, search) {
   if (!search) {
     throw new Error("Você precisa informar o que deseja buscar!");
   }
@@ -69,7 +77,7 @@ export async function play(type, search) {
   return data;
 }
 
-export async function download(type, url) {
+async function spider_download(type, url) {
   if (!url) {
     throw new Error("Você precisa informar uma URL do que deseja buscar!");
   }
@@ -93,7 +101,7 @@ export async function xTwitter(url) {
   return download("x-twitter", url);
 }
 
-export async function gemini(text) {
+async function spider_gemini(text) {
   if (!text) {
     throw new Error("Você precisa informar o parâmetro de texto!");
   }
@@ -110,7 +118,7 @@ export async function gemini(text) {
   return data.response;
 }
 
-export async function gpt5Mini(text) {
+async function spider_gpt5Mini(text) {
   if (!text) {
     throw new Error("Você precisa informar o parâmetro de texto!");
   }
@@ -127,7 +135,7 @@ export async function gpt5Mini(text) {
   return data.response;
 }
 
-export async function deepseekV4Flash(text) {
+async function spider_deepseekV4Flash(text) {
   if (!text) {
     throw new Error("Você precisa informar o parâmetro de texto!");
   }
@@ -176,7 +184,7 @@ const TTS_ALLOWED_VOICES = ["joao", "joão", "ana", "pedro"];
 const TTS_MIN_TEXT_LENGTH = 5;
 const TTS_MAX_TEXT_LENGTH = 2048;
 
-export async function tts(text, voice = "joao") {
+async function spider_tts(text, voice = "joao") {
   if (!text) {
     throw new Error("Você precisa informar o texto para converter em áudio!");
   }
@@ -282,7 +290,7 @@ export async function pinterest(search) {
   return data;
 }
 
-export async function search(type, search) {
+async function spider_search(type, search) {
   if (!search) {
     throw new Error("Você precisa informar o parâmetro de pesquisa!");
   }
@@ -330,7 +338,7 @@ export function exit(title, description, imageURL) {
   )}&image_url=${encodeURIComponent(imageURL)}&api_key=${spiderApiToken}`;
 }
 
-export async function imageAI(description) {
+async function spider_imageAI(description) {
   if (!description) {
     throw new Error("Você precisa informar a descrição da imagem!");
   }
@@ -423,4 +431,115 @@ export async function removeBg(
   );
 
   return Buffer.from(data);
+}
+
+/**
+ * ------------------------------------------------------------------
+ * Alternativas gratuitas (free-api.js)
+ *
+ * Sem token da Spider X configurado, o bot usa as alternativas grátis.
+ * Com token, usa a Spider X e, se ela falhar, tenta a alternativa grátis.
+ * ------------------------------------------------------------------
+ */
+async function withFreeFallback(spiderCall, freeCall) {
+  if (!freeCall) {
+    return spiderCall();
+  }
+
+  spiderAPITokenConfigured = isSpiderApiTokenConfigured(getSpiderApiToken());
+
+  if (!spiderAPITokenConfigured) {
+    return freeCall();
+  }
+
+  try {
+    return await spiderCall();
+  } catch (spiderError) {
+    try {
+      return await freeCall();
+    } catch {
+      throw spiderError;
+    }
+  }
+}
+
+const FREE_DOWNLOAD_TYPES = {
+  "yt-mp3": { audio: true },
+  "yt-mp4": { audio: false },
+  "tik-tok": { audio: false },
+  "tik-tok-audio": { audio: true },
+  instagram: { audio: false },
+  facebook: { audio: false },
+  "x-twitter": { audio: false },
+};
+
+export async function play(type, search) {
+  if (!search) {
+    throw new Error("Você precisa informar o que deseja buscar!");
+  }
+
+  return withFreeFallback(
+    () => spider_play(type, search),
+    () => ytDlpPlay(type, search),
+  );
+}
+
+export async function download(type, url) {
+  if (!url) {
+    throw new Error("Você precisa informar uma URL do que deseja buscar!");
+  }
+
+  const freeType = FREE_DOWNLOAD_TYPES[type];
+
+  return withFreeFallback(
+    () => spider_download(type, url),
+    freeType ? () => ytDlpDownload(url.trim(), freeType) : null,
+  );
+}
+
+export async function gemini(text) {
+  return withFreeFallback(() => spider_gemini(text), () => freeTextAI(text));
+}
+
+export async function gpt5Mini(text) {
+  return withFreeFallback(() => spider_gpt5Mini(text), () => freeTextAI(text));
+}
+
+export async function deepseekV4Flash(text) {
+  return withFreeFallback(
+    () => spider_deepseekV4Flash(text),
+    () => freeTextAI(text),
+  );
+}
+
+export async function tts(text, voice = "joao") {
+  const normalizedVoice = String(voice || "joao").trim().toLowerCase();
+
+  if (!TTS_ALLOWED_VOICES.includes(normalizedVoice)) {
+    throw new Error("Voz inválida! Use: joao, ana ou pedro.");
+  }
+
+  // A voz grátis (Google) é única; as vozes joao/ana/pedro são da Spider X.
+  return withFreeFallback(
+    () => spider_tts(text, voice),
+    () => freeTTS(String(text || "").trim()),
+  );
+}
+
+export async function search(type, query) {
+  return withFreeFallback(
+    () => spider_search(type, query),
+    type === "youtube" && query ? () => ytDlpSearch(query) : null,
+  );
+}
+
+export async function imageAI(description) {
+  if (!description) {
+    throw new Error("Você precisa informar a descrição da imagem!");
+  }
+
+  return withFreeFallback(
+    () => spider_imageAI(description),
+    async () => freeImageAI(description),
+  );
 }

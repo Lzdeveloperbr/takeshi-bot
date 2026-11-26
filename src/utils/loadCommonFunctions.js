@@ -465,14 +465,22 @@ export function loadCommonFunctions({ socket, webMessage }) {
       ? { quoted: JSON.parse(JSON.stringify(webMessage)) }
       : {};
 
-    const response = await fetch(url);
+    let audioBuffer;
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch audio from URL: ${response.statusText}`);
+    // Aceita também um arquivo local (usado pelas alternativas gratuitas).
+    if (!/^https?:\/\//i.test(url) && fs.existsSync(url)) {
+      audioBuffer = fs.readFileSync(url);
+    } else {
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch audio from URL: ${response.statusText}`,
+        );
+      }
+
+      audioBuffer = Buffer.from(await response.arrayBuffer());
     }
-
-    const arrayBuffer = await response.arrayBuffer();
-    const audioBuffer = Buffer.from(arrayBuffer);
 
     const {
       audioPath,

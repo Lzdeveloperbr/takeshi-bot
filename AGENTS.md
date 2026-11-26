@@ -193,6 +193,21 @@ It depends on `SPIDER_API_TOKEN`, which can come from:
 - `src/config.js`
 - runtime database config through `/set-spider-api-token`
 
+### Free fallbacks (no token)
+
+`src/services/free-api.js` provides free alternatives used by `spider-x-api.js`
+through `withFreeFallback()`: without a Spider X token the free path is used; with a
+token, Spider X is tried first and the free path only runs if it fails.
+
+- downloads, `play` and YouTube search → local `yt-dlp` binary (`YT_DLP_PATH` env
+  overrides the path); files go to `assets/temp` and are deleted after 10 minutes
+- text AI (gemini, gpt-5-mini, deepseek) → Pollinations.AI text endpoints
+- image AI (flux, ia-sticker) → Pollinations.AI image URL
+- tts → Google Translate TTS (single voice)
+
+Not covered (still need Spider X): attp, ttp, brat, bratvid, canvas, pinterest,
+removebg, transcrever, to-gif, welcome/exit images.
+
 ### Media Services
 
 `src/services/ffmpeg.js` handles media conversion, including audio normalization and voice-note friendly formats.
