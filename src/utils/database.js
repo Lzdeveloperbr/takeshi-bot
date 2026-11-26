@@ -24,6 +24,7 @@ const EXIT_GROUPS_FILE = "exit-groups";
 const GROUP_RESTRICTIONS_FILE = "group-restrictions";
 const GROUP_RULES_FILE = "group-rules";
 const ACTIVITY_FILE = "activity";
+const BANNED_WORDS_FILE = "banned-words";
 const INACTIVE_GROUPS_FILE = "inactive-groups";
 const MUTE_FILE = "muted";
 const ONLY_ADMINS_FILE = "only-admins";
@@ -64,7 +65,24 @@ function readJSON(jsonFile, formatIfNotExists = []) {
   const content = fs.readFileSync(fullPath, "utf8");
 
   try {
-    return JSON.parse(content);
+    const parsed = JSON.parse(content);
+
+    // Arquivo com formato errado (ex.: '"{}"' gravado por versões antigas):
+    // devolve o formato padrão em vez de quebrar quem lê.
+    const expectsArray = Array.isArray(formatIfNotExists);
+    const isValid = expectsArray
+      ? Array.isArray(parsed)
+      : parsed !== null && typeof parsed === "object" && !Array.isArray(parsed);
+
+    if (
+      formatIfNotExists !== null &&
+      typeof formatIfNotExists === "object" &&
+      !isValid
+    ) {
+      return structuredClone(formatIfNotExists);
+    }
+
+    return parsed;
   } catch (error) {
     // Um JSON corrompido não deve derrubar o processamento de todas as
     // mensagens. Guardamos uma cópia para análise e recriamos o arquivo.
@@ -374,7 +392,7 @@ export function isActiveAutoStickerGroup(groupId) {
 export function muteMember(groupId, memberId) {
   const filename = MUTE_FILE;
 
-  const mutedMembers = readJSON(filename, JSON.stringify({}));
+  const mutedMembers = readJSON(filename, {});
 
   if (!mutedMembers[groupId]) {
     mutedMembers[groupId] = [];
@@ -384,13 +402,13 @@ export function muteMember(groupId, memberId) {
     mutedMembers[groupId].push(memberId);
   }
 
-  writeJSON(filename, mutedMembers);
+  writeJSON(filename, mutedMembers, {});
 }
 
 export function unmuteMember(groupId, memberId) {
   const filename = MUTE_FILE;
 
-  const mutedMembers = readJSON(filename, JSON.stringify({}));
+  const mutedMembers = readJSON(filename, {});
 
   if (!mutedMembers[groupId]) {
     return;
@@ -402,13 +420,13 @@ export function unmuteMember(groupId, memberId) {
     mutedMembers[groupId].splice(index, 1);
   }
 
-  writeJSON(filename, mutedMembers);
+  writeJSON(filename, mutedMembers, {});
 }
 
 export function checkIfMemberIsMuted(groupId, memberId) {
   const filename = MUTE_FILE;
 
-  const mutedMembers = readJSON(filename, JSON.stringify({}));
+  const mutedMembers = readJSON(filename, {});
 
   if (!mutedMembers[groupId]) {
     return false;
@@ -641,4 +659,43 @@ export function resetGroupActivity(groupId) {
   activity[groupId] = { since: Date.now(), members: {} };
 
   writeJSON(ACTIVITY_FILE, activity, {});
+}
+
+export function getBannedWords(groupId) {
+  const bannedWords = readJSON(BANNED_WORDS_FILE, {});
+
+  return bannedWords[groupId] || [];
+}
+
+/** @returns {boolean} false se a palavra já estava na lista. */
+export function addBannedWord(groupId, word) {
+  const bannedWords = readJSON(BANNED_WORDS_FILE, {});
+  const normalized = word.trim().toLowerCase();
+
+  bannedWords[groupId] ??= [];
+
+  if (!normalized || bannedWords[groupId].includes(normalized)) {
+    return false;
+  }
+
+  bannedWords[groupId].push(normalized);
+  writeJSON(BANNED_WORDS_FILE, bannedWords, {});
+
+  return true;
+}
+
+/** @returns {boolean} false se a palavra não estava na lista. */
+export function removeBannedWord(groupId, word) {
+  const bannedWords = readJSON(BANNED_WORDS_FILE, {});
+  const normalized = word.trim().toLowerCase();
+  const list = bannedWords[groupId] || [];
+
+  if (!list.includes(normalized)) {
+    return false;
+  }
+
+  bannedWords[groupId] = list.filter((item) => item !== normalized);
+  writeJSON(BANNED_WORDS_FILE, bannedWords, {});
+
+  return true;
 }

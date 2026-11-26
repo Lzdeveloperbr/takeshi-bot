@@ -10,9 +10,17 @@ import {
 } from "../utils/antiPaymentAction.js";
 import { handleQuotedLinkRestriction } from "../utils/quotedLinkAction.js";
 import {
+  getBannedWords,
+  getPrefix,
+  muteMember,
   readGroupRestrictions,
   readRestrictedMessageTypes,
 } from "../utils/database.js";
+import {
+  findBannedWord,
+  getMessageText,
+  registerMessage,
+} from "../utils/floodTracker.js";
 import { hasGroupStatusMessage } from "../utils/groupStatusMessage.js";
 import { hasDirectMedia } from "../utils/index.js";
 import { errorLog } from "../utils/logger.js";
@@ -62,6 +70,49 @@ export async function messageHandler(socket, webMessage) {
 
     if (userIsAdmin) {
       return;
+    }
+
+    const memberLid = userLid.replace(/:[0-9]+(?=@)/, "");
+    const memberTag = `@${memberLid.split("@")[0]}`;
+
+    if (antiGroups[remoteJid]?.["anti-palavra"]) {
+      const bannedWord = findBannedWord(
+        getMessageText(webMessage),
+        getBannedWords(remoteJid),
+      );
+
+      if (bannedWord) {
+        await socket.sendMessage(remoteJid, {
+          delete: { remoteJid, fromMe: false, id: messageId, participant: userLid },
+        });
+
+        await socket.sendMessage(remoteJid, {
+          text: `🚫 ${memberTag}, sua mensagem foi apagada por conter uma palavra proibida neste grupo.`,
+          mentions: [memberLid],
+        });
+
+        return;
+      }
+    }
+
+    if (antiGroups[remoteJid]?.["anti-flood"]) {
+      const floodResult = registerMessage(`${remoteJid}:${memberLid}`);
+
+      if (floodResult === "warn") {
+        await socket.sendMessage(remoteJid, {
+          text: `⚠️ ${memberTag}, calma! Você está mandando mensagens rápido demais. Se continuar, será silenciado.`,
+          mentions: [memberLid],
+        });
+      } else if (floodResult === "mute") {
+        muteMember(remoteJid, memberLid);
+
+        await socket.sendMessage(remoteJid, {
+          text: `🔇 ${memberTag} foi silenciado por flood.\nUm admin pode liberar com ${getPrefix(remoteJid)}unmute ${memberTag}`,
+          mentions: [memberLid],
+        });
+
+        return;
+      }
     }
 
     if (isAntiPaymentActive && hasPaymentMessage(webMessage)) {

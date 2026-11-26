@@ -2,7 +2,7 @@
 
 ![Takeshi Bot](./assets/images/takeshi-bot.png)
 
-[![Version](https://img.shields.io/badge/Vers%C3%A3o-8.18.0-blue)](https://github.com/guiireal/takeshi-bot)
+[![Version](https://img.shields.io/badge/Vers%C3%A3o-8.19.0-blue)](https://github.com/guiireal/takeshi-bot)
 [![Tests](https://github.com/guiireal/takeshi-bot-private/actions/workflows/test.yml/badge.svg)](https://github.com/guiireal/takeshi-bot-private/actions/workflows/test.yml)
 
 > Base para bots de WhatsApp multifuncional com diversos comandos prontos.
@@ -22,8 +22,8 @@ Esta versão é baseada no Takeshi Bot (créditos ao [Dev Gui](https://github.co
 | 🔘 Botões | `/menu` e `/painel` com lista de comandos e atalhos: dá para usar o bot sem digitar |
 | 🔎 Consultas (dados públicos) | `/cnpj`, `/cep`, `/ddd`, `/banco`, `/feriados`, `/isbn`, `/dominio`, `/taxas` (BrasilAPI, grátis) |
 | 🧰 Utilidades | `/calc`, `/clima`, `/cotacao`, `/wiki`, `/qrcode`, `/lembrete`, `/senha`, `/idade`, `/signo`, `/contar`, `/aleatorio`, `/admins` |
-| 👥 Grupo | `/regras` + `/set-regras`, `/rank`, `/inativos`, `/reset-rank`, boas-vindas com `@group`, `@count` e `@prefix` |
-| 🎮 Brincadeiras | `/moeda`, `/ppt`, `/ship`, `/pergunta`, `/escolher` |
+| 👥 Grupo | `/add`, `/aprovar`, `/set-desc`, `/set-foto`, `/revogar-link`, `/grupo`, `/enquete`, `/regras` + `/set-regras`, `/rank`, `/inativos`, anti-flood (`/anti-flood`) e palavras proibidas (`/anti-palavra`, `/add-palavra`), boas-vindas com `@group`, `@count` e `@prefix` |
+| 🎮 Jogos e brincadeiras | `/quiz`, `/adivinhar` + `/placar`, `/vd` (verdade ou desafio), `/eu-nunca`, `/piada`, `/cantada`, `/curiosidade`, `/casal-do-dia`, `/top5`, `/ship`, `/ppt`, `/moeda`, `/pergunta`, `/escolher` |
 | 🆓 Sem token | Downloads (yt-dlp), IA de texto/imagem (Pollinations) e voz (Google) funcionam sem token da Spider X |
 | ⚡ Estabilidade | Anti-flood, cache de grupos, reconexão com espera progressiva, banco JSON à prova de corrompimento, limpeza automática de temporários, "Você quis dizer...?" |
 | 🖥️ 24h | `bash scripts/setup-vps.sh` instala tudo numa VPS e cria o serviço `scarlett-bot` |

@@ -4,7 +4,7 @@ import { InvalidParameterError } from "../../../errors/index.js";
 export default {
   name: "contar",
   description: "Conta caracteres, palavras e linhas de um texto (ou da mensagem respondida).",
-  commands: ["contar", "caracteres", "palavras"],
+  commands: ["contar", "caracteres", "contar-palavras"],
   usage: `${PREFIX}contar seu texto (ou responda a uma mensagem)`,
   /**
    * @param {CommandHandleProps} props
