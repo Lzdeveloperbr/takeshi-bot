@@ -113,17 +113,34 @@ export function menuMessage(groupJid) {
 ╭━━⪩ UTILIDADES ⪨━━
 ▢
 ▢ • ${prefix}admins
+▢ • ${prefix}aleatorio
 ▢ • ${prefix}calc
 ▢ • ${prefix}clima
+▢ • ${prefix}contar
 ▢ • ${prefix}cotacao
+▢ • ${prefix}idade
 ▢ • ${prefix}lembrete
 ▢ • ${prefix}qrcode
 ▢ • ${prefix}rank
 ▢ • ${prefix}regras
 ▢ • ${prefix}senha
+▢ • ${prefix}signo
 ▢ • ${prefix}wiki
 ▢
 ╰━━─「🧰」─━━
+
+╭━━⪩ CONSULTAS ⪨━━
+▢
+▢ • ${prefix}banco
+▢ • ${prefix}cep
+▢ • ${prefix}cnpj
+▢ • ${prefix}ddd
+▢ • ${prefix}dominio
+▢ • ${prefix}feriados
+▢ • ${prefix}isbn
+▢ • ${prefix}taxas
+▢
+╰━━─「🔎」─━━
 
 ╭━━⪩ DOWNLOADS ⪨━━
 ▢
@@ -239,6 +256,19 @@ const MENU_SECTIONS = [
     ],
   },
   {
+    title: "🔎 Consultas",
+    rows: [
+      { title: "Feriados do ano", run: "feriados" },
+      { title: "Taxas Selic/CDI/IPCA", run: "taxas" },
+      { title: "Empresa pelo CNPJ", info: "cnpj" },
+      { title: "CEP", info: "cep" },
+      { title: "DDD", info: "ddd" },
+      { title: "Banco pelo código", info: "banco" },
+      { title: "Livro pelo ISBN", info: "isbn" },
+      { title: "Domínio .br", info: "dominio" },
+    ],
+  },
+  {
     title: "🎮 Brincadeiras",
     rows: [
       { title: "Cara ou coroa", run: "moeda" },
@@ -247,6 +277,8 @@ const MENU_SECTIONS = [
       { title: "Ship (casal)", info: "ship" },
       { title: "Escolher entre opções", info: "escolher" },
       { title: "Dado", info: "dado" },
+      { title: "Número aleatório", run: "aleatorio" },
+      { title: "Signo", info: "signo" },
     ],
   },
   {
