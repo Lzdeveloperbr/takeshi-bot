@@ -2,7 +2,7 @@
 
 ![Takeshi Bot](./assets/images/takeshi-bot.png)
 
-[![Version](https://img.shields.io/badge/Vers%C3%A3o-8.11.0-blue)](https://github.com/guiireal/takeshi-bot)
+[![Version](https://img.shields.io/badge/Vers%C3%A3o-8.18.0-blue)](https://github.com/guiireal/takeshi-bot)
 [![Tests](https://github.com/guiireal/takeshi-bot-private/actions/workflows/test.yml/badge.svg)](https://github.com/guiireal/takeshi-bot-private/actions/workflows/test.yml)
 
 > Base para bots de WhatsApp multifuncional com diversos comandos prontos.
@@ -11,6 +11,24 @@
 [![Baileys](https://img.shields.io/badge/Baileys-7.0.0.rc14-purple?logo=whatsapp)](https://github.com/WhiskeySockets/Baileys)
 [![FFMPEG](https://img.shields.io/badge/FFMPEG-Latest-orange?logo=ffmpeg)](https://ffmpeg.org/)
 [![Spider X API](https://img.shields.io/badge/Spider_X-API-green?logo=api)](https://api.spiderx.com.br)
+
+## ✨ Novidades desta versão (Scarlett Bot)
+
+Esta versão é baseada no Takeshi Bot (créditos ao [Dev Gui](https://github.com/guiireal/takeshi-bot)) e adiciona:
+
+| Área | O que tem |
+| --- | --- |
+| 🔊 Figurinhas | `/som`: figurinha com som **nativa** do WhatsApp (vídeo com som, ou imagem + áudio) |
+| 🔘 Botões | `/menu` e `/painel` com lista de comandos e atalhos: dá para usar o bot sem digitar |
+| 🔎 Consultas (dados públicos) | `/cnpj`, `/cep`, `/ddd`, `/banco`, `/feriados`, `/isbn`, `/dominio`, `/taxas` (BrasilAPI, grátis) |
+| 🧰 Utilidades | `/calc`, `/clima`, `/cotacao`, `/wiki`, `/qrcode`, `/lembrete`, `/senha`, `/idade`, `/signo`, `/contar`, `/aleatorio`, `/admins` |
+| 👥 Grupo | `/regras` + `/set-regras`, `/rank`, `/inativos`, `/reset-rank`, boas-vindas com `@group`, `@count` e `@prefix` |
+| 🎮 Brincadeiras | `/moeda`, `/ppt`, `/ship`, `/pergunta`, `/escolher` |
+| 🆓 Sem token | Downloads (yt-dlp), IA de texto/imagem (Pollinations) e voz (Google) funcionam sem token da Spider X |
+| ⚡ Estabilidade | Anti-flood, cache de grupos, reconexão com espera progressiva, banco JSON à prova de corrompimento, limpeza automática de temporários, "Você quis dizer...?" |
+| 🖥️ 24h | `bash scripts/setup-vps.sh` instala tudo numa VPS e cria o serviço `scarlett-bot` |
+
+O bot **não** faz consultas de dados pessoais (CPF, nome, telefone de pessoas).
 
 ## 🧪 Testando a versão 9.0.0-beta (migração para Zapo)
 

@@ -214,6 +214,13 @@ token, Spider X is tried first and the free path only runs if it fails.
 Not covered (still need Spider X): attp, ttp, brat, bratvid, canvas, pinterest,
 removebg, transcrever, to-gif, welcome/exit images.
 
+### BrasilAPI (public data lookups)
+
+`src/services/brasil-api.js` wraps https://brasilapi.com.br (free, no key) for the
+commands in `src/commands/member/consultas/` (cnpj, ddd, banco, feriados, isbn,
+dominio, taxas). Only public data. Do not add lookups of personal data about private
+individuals (CPF, name, phone, address): that is out of scope for this bot.
+
 ### Media Services
 
 `src/services/ffmpeg.js` handles media conversion, including audio normalization and voice-note friendly formats.
