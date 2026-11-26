@@ -83,9 +83,16 @@ export default {
       let videoPath = null;
 
       try {
-        videoPath = await downloadVideo(webMessage, getRandomName());
-        if (!videoPath || !fs.existsSync(videoPath)) {
-          throw new WarningError("Não consegui baixar o vídeo. Tente novamente.");
+        try {
+          videoPath = await downloadVideo(webMessage, getRandomName());
+        } catch (error) {
+          errorLog(`Erro ao baixar vídeo para figurinha com som: ${error.message}`);
+        }
+
+        if (!videoPath || !fs.existsSync(videoPath) || !fs.statSync(videoPath).size) {
+          throw new WarningError(
+            "Não consegui baixar esse vídeo do WhatsApp. Se ele for antigo ou encaminhado muitas vezes, envie o vídeo de novo com /som na legenda.",
+          );
         }
 
         if (!(await hasAudioStream(videoPath))) {
@@ -108,7 +115,7 @@ export default {
         if (error instanceof WarningError) throw error;
         errorLog(`Erro ao criar figurinha com som: ${error.message}`);
         throw new WarningError(
-          "Não consegui transformar esse vídeo em figurinha com som. Confira se ele tem áudio e tente novamente.",
+          `Não consegui transformar esse vídeo em figurinha com som.\n\n📄 *Motivo:* falha ao ${error.message}`,
         );
       } finally {
         removeFileIfExists(videoPath);
@@ -171,7 +178,7 @@ export default {
         if (error instanceof WarningError) throw error;
         errorLog(`Erro ao criar figurinha com som: ${error.message}`);
         throw new WarningError(
-          "Não consegui criar a figurinha com som. Tente novamente com outro áudio.",
+          `Não consegui criar a figurinha com som.\n\n📄 *Motivo:* falha ao ${error.message}`,
         );
       } finally {
         clearPendingImage(key);

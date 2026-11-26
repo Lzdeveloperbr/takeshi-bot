@@ -23,6 +23,7 @@ const CONFIG_FILE = "config";
 const EXIT_GROUPS_FILE = "exit-groups";
 const GROUP_RESTRICTIONS_FILE = "group-restrictions";
 const GROUP_RULES_FILE = "group-rules";
+const ACTIVITY_FILE = "activity";
 const INACTIVE_GROUPS_FILE = "inactive-groups";
 const MUTE_FILE = "muted";
 const ONLY_ADMINS_FILE = "only-admins";
@@ -607,4 +608,37 @@ export function removeGroupRules(groupId) {
   writeJSON(GROUP_RULES_FILE, groupRules, {});
 
   return true;
+}
+
+/**
+ * Soma contagens de mensagens por membro.
+ * @param {Record<string, Record<string, number>>} delta grupo -> membro -> quantidade
+ */
+export function addActivityCounts(delta) {
+  const activity = readJSON(ACTIVITY_FILE, {});
+
+  for (const [groupId, members] of Object.entries(delta)) {
+    activity[groupId] ??= { since: Date.now(), members: {} };
+
+    for (const [memberId, count] of Object.entries(members)) {
+      activity[groupId].members[memberId] =
+        (activity[groupId].members[memberId] || 0) + count;
+    }
+  }
+
+  writeJSON(ACTIVITY_FILE, activity, {});
+}
+
+export function getGroupActivity(groupId) {
+  const activity = readJSON(ACTIVITY_FILE, {});
+
+  return activity[groupId] || null;
+}
+
+export function resetGroupActivity(groupId) {
+  const activity = readJSON(ACTIVITY_FILE, {});
+
+  activity[groupId] = { since: Date.now(), members: {} };
+
+  writeJSON(ACTIVITY_FILE, activity, {});
 }
