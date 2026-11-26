@@ -226,6 +226,9 @@ Runtime and dependency snapshot is in the root `package.json`
 Project-level scripts:
 
 - `npm start`
+- `npm run start:24h` → `scripts/start-24h.sh`, restarts the bot when it exits (hosts without systemd)
+- `bash scripts/setup-vps.sh` → installs Node 22, ffmpeg and yt-dlp on Ubuntu/Debian and
+  creates the `scarlett-bot` systemd service (only enabled after the first pairing)
 - `npm test`
 - `npm run test:all`
 - `npm run patch:baileys`
