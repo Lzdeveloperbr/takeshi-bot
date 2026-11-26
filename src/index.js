@@ -74,6 +74,8 @@
 import { connect } from "./connection.js";
 import { load } from "./loader.js";
 import { badMacHandler } from "./utils/badMacHandler.js";
+import { startTempCleaner } from "./utils/tempCleaner.js";
+import { flushActivity } from "./utils/activity.js";
 import {
   bannerLog,
   errorLog,
@@ -108,12 +110,27 @@ process.on("unhandledRejection", (reason) => {
   errorLog(`Promessa rejeitada não tratada:`, reason);
 });
 
+// Salva os dados pendentes (ranking) antes de desligar.
+for (const signal of ["SIGINT", "SIGTERM"]) {
+  process.on(signal, () => {
+    try {
+      flushActivity();
+    } catch (error) {
+      errorLog(`Erro ao salvar dados antes de sair: ${error.message}`);
+    }
+
+    process.exit(0);
+  });
+}
+
 async function startBot() {
   try {
     process.setMaxListeners(1500);
 
     bannerLog();
     infoLog("Iniciando meus componentes internos...");
+
+    startTempCleaner();
 
     const stats = badMacHandler.getStats();
     if (stats.errorCount > 0) {

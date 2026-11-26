@@ -22,6 +22,7 @@ import { recordMessageEnvelope } from "../utils/messageEnvelopeRegistry.js";
 import { hasPaymentMessage } from "../utils/paymentMessage.js";
 import { handleAfkReferences } from "./afkHandler.js";
 import { onGroupParticipantsUpdate } from "./onGroupParticipantsUpdate.js";
+import { countMessage } from "../utils/activity.js";
 
 export async function onMessagesUpsert({ socket, messages, startProcess }) {
   if (!messages.length) {
@@ -119,6 +120,15 @@ export async function onMessagesUpsert({ socket, messages, startProcess }) {
         }
 
         continue;
+      }
+
+      // Conta a mensagem para o /rank e o /inativos (texto, mídia, figurinha...).
+      if (isGroup && webMessage.message && !webMessage.key?.fromMe) {
+        countMessage(
+          remoteJid,
+          webMessage.key?.participant?.replace(/:[0-9]+(?=@)/, "") ||
+            webMessage.key?.participantAlt,
+        );
       }
 
       const commonFunctions = loadCommonFunctions({ socket, webMessage });

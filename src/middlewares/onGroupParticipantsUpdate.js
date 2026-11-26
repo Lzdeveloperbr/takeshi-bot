@@ -6,12 +6,35 @@
  */
 import { exitMessage, welcomeMessage } from "../messages.js";
 import {
+  getPrefix,
   isActiveExitGroup,
   isActiveGroup,
   isActiveWelcomeGroup,
 } from "../utils/database.js";
 import { extractUserLid, onlyNumbers } from "../utils/index.js";
 import { errorLog } from "../utils/logger.js";
+
+/**
+ * Troca @group pelo nome do grupo, @count pela quantidade de membros
+ * e @prefix pelo prefixo do grupo.
+ */
+export async function replaceGroupPlaceholders(text, socket, remoteJid) {
+  text = text.replaceAll("@prefix", getPrefix(remoteJid));
+
+  if (!text.includes("@group") && !text.includes("@count")) {
+    return text;
+  }
+
+  try {
+    const metadata = await socket.groupMetadata(remoteJid);
+
+    return text
+      .replaceAll("@group", metadata?.subject || "grupo")
+      .replaceAll("@count", String(metadata?.participants?.length ?? ""));
+  } catch {
+    return text.replaceAll("@group", "grupo").replaceAll("@count", "");
+  }
+}
 
 export async function onGroupParticipantsUpdate({
   data,
@@ -46,7 +69,7 @@ export async function onGroupParticipantsUpdate({
       }
 
       await socket.sendMessage(remoteJid, {
-        text: finalWelcomeMessage,
+        text: await replaceGroupPlaceholders(finalWelcomeMessage, socket, remoteJid),
         mentions,
       });
     } else if (isActiveExitGroup(remoteJid) && action === "remove") {
@@ -62,7 +85,7 @@ export async function onGroupParticipantsUpdate({
       }
 
       await socket.sendMessage(remoteJid, {
-        text: finalExitMessage,
+        text: await replaceGroupPlaceholders(finalExitMessage, socket, remoteJid),
         mentions,
       });
     }

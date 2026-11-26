@@ -4,10 +4,14 @@
  * Você pode personalizar as mensagens conforme necessário.
  *
  * Para colocar a menção ao membro, use "@member" na mensagem.
+ * Para colocar o nome do grupo, use "@group".
+ * Para colocar a quantidade de membros, use "@count".
+ * Para colocar o prefixo do bot no grupo, use "@prefix".
  *
  * @author Dev Gui
  */
-export const welcomeMessage = "Seja bem vindo ao nosso grupo, @member!";
+export const welcomeMessage =
+  "Seja bem-vindo(a) ao *@group*, @member! 🎉\nAgora somos @count membros. Leia as regras com @prefixregras.";
 export const exitMessage =
   "Poxa, @member saiu do grupo... Sentiremos sua falta!";
 

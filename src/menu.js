@@ -61,6 +61,7 @@ export function menuMessage(groupJid) {
 ▢ • ${prefix}delete-auto-responder
 ▢ • ${prefix}exit (1/0)
 ▢ • ${prefix}fechar
+▢ • ${prefix}inativos
 ▢ • ${prefix}hidetag
 ▢ • ${prefix}limpar-chat
 ▢ • ${prefix}link-grupo
@@ -69,6 +70,7 @@ export function menuMessage(groupJid) {
 ▢ • ${prefix}only-admin (1/0)
 ▢ • ${prefix}promover
 ▢ • ${prefix}rebaixar
+▢ • ${prefix}reset-rank
 ▢ • ${prefix}revelar
 ▢ • ${prefix}saldo
 ▢ • ${prefix}set-proxy
@@ -116,6 +118,7 @@ export function menuMessage(groupJid) {
 ▢ • ${prefix}cotacao
 ▢ • ${prefix}lembrete
 ▢ • ${prefix}qrcode
+▢ • ${prefix}rank
 ▢ • ${prefix}regras
 ▢ • ${prefix}senha
 ▢ • ${prefix}wiki
@@ -225,6 +228,7 @@ const MENU_SECTIONS = [
     rows: [
       { title: "Cotação do dólar", run: "cotacao" },
       { title: "Gerar senha forte", run: "senha" },
+      { title: "Ranking de ativos", run: "rank" },
       { title: "Regras do grupo", run: "regras" },
       { title: "Chamar os admins", run: "admins" },
       { title: "Calculadora", info: "calc" },

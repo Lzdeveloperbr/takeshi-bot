@@ -257,46 +257,116 @@ export function readDirectoryRecursive(dir) {
   return results;
 }
 
-export async function findCommandImport(commandName) {
-  const command = await readCommandImports();
+/**
+ * Índice de comandos (nome/apelido -> comando), montado uma única vez.
+ * Antes, todos os arquivos de comando eram lidos a cada mensagem recebida.
+ * Como o Node guarda os módulos em cache, alterações em comandos só valem
+ * após reiniciar o bot, então o índice não perde nada.
+ */
+let commandIndexPromise = null;
 
-  let typeReturn = "";
-  let targetCommandReturn = null;
+async function buildCommandIndex() {
+  const imports = await readCommandImports();
+  const index = new Map();
 
-  for (const [type, commands] of Object.entries(command)) {
-    if (!commands.length) {
-      continue;
-    }
+  // Ordem fixa de prioridade quando dois comandos usam o mesmo apelido.
+  const types = ["owner", "admin", "member"].filter((type) => imports[type]);
+  for (const type of Object.keys(imports)) {
+    if (!types.includes(type)) types.push(type);
+  }
 
-    try {
-      const targetCommand = commands.find((cmd) => {
-        if (!cmd?.commands || !Array.isArray(cmd.commands)) {
-          errorLog(
-            `Erro no comando do tipo "${type}": A propriedade "commands" precisa existir ser um ["array"] com os nomes dos comandos! Arquivo errado: ${cmd.name}.js`,
-          );
-
-          return false;
-        }
-
-        return cmd.commands
-          .map((cmdName) => formatCommand(cmdName))
-          .includes(commandName);
-      });
-
-      if (targetCommand) {
-        typeReturn = type;
-        targetCommandReturn = targetCommand;
-        break;
+  for (const type of types) {
+    for (const cmd of imports[type]) {
+      if (!cmd?.commands || !Array.isArray(cmd.commands)) {
+        errorLog(
+          `Erro no comando do tipo "${type}": A propriedade "commands" precisa existir ser um ["array"] com os nomes dos comandos! Arquivo errado: ${cmd?.name}.js`,
+        );
+        continue;
       }
-    } catch (error) {
-      console.error(`Erro ao processar comandos do tipo "${type}":`, error);
+
+      for (const alias of cmd.commands) {
+        const key = formatCommand(alias);
+
+        if (key && !index.has(key)) {
+          index.set(key, { type, command: cmd, alias });
+        }
+      }
     }
   }
 
+  return index;
+}
+
+export function getCommandIndex() {
+  if (!commandIndexPromise) {
+    commandIndexPromise = buildCommandIndex().catch((error) => {
+      commandIndexPromise = null;
+      throw error;
+    });
+  }
+
+  return commandIndexPromise;
+}
+
+export async function findCommandImport(commandName) {
+  const index = await getCommandIndex();
+  const found = index.get(commandName);
+
   return {
-    type: typeReturn,
-    command: targetCommandReturn,
+    type: found?.type ?? "",
+    command: found?.command ?? null,
   };
+}
+
+// Distância de edição que conta letras trocadas de lugar como 1 erro
+// ("plya" -> "play").
+function editDistance(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) =>
+    Array.from({ length: b.length + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)),
+  );
+
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost);
+
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+      }
+    }
+  }
+
+  return d[a.length][b.length];
+}
+
+/**
+ * Sugere o comando mais parecido com o que foi digitado (para erros de
+ * digitação como "/plya" -> "/play"). Retorna o apelido ou null.
+ */
+export async function suggestCommand(commandName) {
+  if (!commandName || commandName.length < 2) {
+    return null;
+  }
+
+  const index = await getCommandIndex();
+  const maxDistance = commandName.length <= 4 ? 1 : 2;
+
+  let best = null;
+  let bestDistance = Infinity;
+
+  for (const [key, { alias }] of index) {
+    if (Math.abs(key.length - commandName.length) > maxDistance) continue;
+
+    const distance = editDistance(commandName, key);
+
+    if (distance < bestDistance) {
+      best = alias;
+      bestDistance = distance;
+    }
+  }
+
+  return bestDistance <= maxDistance ? best : null;
 }
 
 export async function readCommandImports() {

@@ -29,7 +29,8 @@ import {
   isActiveGroup,
   isActiveOnlyAdmins,
 } from "./database.js";
-import { findCommandImport } from "./index.js";
+import { checkCommandCooldown } from "./cooldown.js";
+import { findCommandImport, suggestCommand } from "./index.js";
 import { errorLog } from "./logger.js";
 
 /**
@@ -181,11 +182,29 @@ export async function dynamicCommand(paramsHandler, startProcess) {
   }
 
   if (!hasTypeAndCommand({ type, command })) {
+    const suggestion = await suggestCommand(commandName);
+
     await sendWarningReply(
-      `Comando não encontrado! Use ${groupPrefix}menu para ver os comandos disponíveis!`
+      suggestion
+        ? `Comando não encontrado! Você quis dizer *${groupPrefix}${suggestion}*?`
+        : `Comando não encontrado! Use ${groupPrefix}menu para ver os comandos disponíveis!`
     );
 
     return;
+  }
+
+  if (!isBotOwner({ userLid })) {
+    const cooldown = checkCommandCooldown(`${remoteJid}:${userLid}`);
+
+    if (!cooldown.allowed) {
+      if (cooldown.shouldWarn) {
+        await sendWarningReply(
+          `Calma! Aguarde ${cooldown.remainingSeconds}s para usar outro comando.`
+        );
+      }
+
+      return;
+    }
   }
 
   try {
