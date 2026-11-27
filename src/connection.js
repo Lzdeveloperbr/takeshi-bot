@@ -73,9 +73,9 @@ const userDevicesCache = new NodeCache({ stdTTL: 5 * 60, useClones: false });
 // Versão do WhatsApp Web: buscada uma vez, para reconectar mais rápido.
 let cachedWaVersion = null;
 
-async function getWaVersion() {
+export async function getWaVersion() {
   if (!cachedWaVersion) {
-    const version = await getWaVersion();
+    const { version } = await fetchLatestBaileysVersion();
     cachedWaVersion = version;
   }
 
