@@ -134,3 +134,46 @@ describe("ranking de ativos", async () => {
     assert.deepStrictEqual(getActivity(group).members, {});
   });
 });
+
+describe("intervalo por comando", () => {
+  it("aceita um intervalo próprio (ex.: jogos com 1s)", () => {
+    resetCommandCooldowns();
+    const t = 5_000_000;
+    assert.strictEqual(checkCommandCooldown("g:jogo", t, 1000).allowed, true);
+    assert.strictEqual(checkCommandCooldown("g:jogo", t + 500, 1000).allowed, false);
+    assert.strictEqual(checkCommandCooldown("g:jogo", t + 1000, 1000).allowed, true);
+  });
+
+  it("jogos e downloads têm intervalos definidos", async () => {
+    for (const [name, seconds] of [["r", 1], ["forca", 1], ["chute", 1], ["play", 5], ["som", 5]]) {
+      const { command } = await findCommandImport(name);
+      assert.strictEqual(command.cooldownSeconds, seconds, name);
+    }
+  });
+});
+
+describe("backup do dono", () => {
+  it("envia os dados sem tokens/chaves", async () => {
+    const { default: backup } = await import("../commands/owner/backup.js");
+    const configFile = path.resolve(import.meta.dirname, "..", "..", "database", "config.json");
+    const original = fs.readFileSync(configFile, "utf8");
+
+    try {
+      fs.writeFileSync(configFile, JSON.stringify({ spiderApiToken: "SEGREDO123", linkerApiKey: "SEGREDO456", outro: "ok" }));
+
+      let sent;
+      await backup.handle({
+        userLid: "dono@lid",
+        socket: { sendMessage: async (jid, content) => (sent = { jid, content }) },
+        sendSuccessReply: async () => {},
+      });
+
+      const text = sent.content.document.toString("utf8");
+      assert.strictEqual(sent.jid, "dono@lid");
+      assert.ok(!text.includes("SEGREDO"));
+      assert.match(text, /"outro": "ok"/);
+    } finally {
+      fs.writeFileSync(configFile, original);
+    }
+  });
+});

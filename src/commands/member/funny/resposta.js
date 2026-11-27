@@ -11,6 +11,7 @@ export default {
   description: "Responde a pergunta do quiz.",
   commands: ["r", "resposta", "responder"],
   usage: `${PREFIX}r A`,
+  cooldownSeconds: 1,
   /**
    * @param {CommandHandleProps} props
    */

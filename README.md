@@ -2,7 +2,7 @@
 
 ![Takeshi Bot](./assets/images/takeshi-bot.png)
 
-[![Version](https://img.shields.io/badge/Vers%C3%A3o-8.21.0-blue)](https://github.com/guiireal/takeshi-bot)
+[![Version](https://img.shields.io/badge/Vers%C3%A3o-8.22.0-blue)](https://github.com/guiireal/takeshi-bot)
 [![Tests](https://github.com/guiireal/takeshi-bot-private/actions/workflows/test.yml/badge.svg)](https://github.com/guiireal/takeshi-bot-private/actions/workflows/test.yml)
 
 > Base para bots de WhatsApp multifuncional com diversos comandos prontos.
@@ -26,6 +26,7 @@ Esta versão é baseada no Takeshi Bot (créditos ao [Dev Gui](https://github.co
 | 🎮 Jogos e brincadeiras | `/quiz`, `/adivinhar` + `/placar`, `/vd` (verdade ou desafio), `/eu-nunca`, `/piada`, `/cantada`, `/curiosidade`, `/casal-do-dia`, `/top5`, `/ship`, `/ppt`, `/moeda`, `/pergunta`, `/escolher` |
 | 💰 Economia e níveis | `/diario`, `/carteira`, `/apostar`, `/pix`, `/ricos` (moedas do jogo, ganhas também no quiz, adivinhar e forca), `/nivel` e `/forca` |
 | 🚫 Controle | Admins desativam comandos de membro por grupo: `/desativar-cmd`, `/ativar-cmd`, `/cmds-desativados` |
+| 👑 Dono | `/grupos` (lista os grupos), `/bc` (aviso para todos os grupos, com intervalo), `/backup` (dados no privado, sem tokens); membros falam com o dono por `/report` |
 | 🆓 Sem token | Downloads (yt-dlp), IA de texto/imagem (Pollinations) e voz (Google) funcionam sem token da Spider X |
 | ⚡ Estabilidade | Anti-flood, cache de grupos, reconexão com espera progressiva, banco JSON à prova de corrompimento, limpeza automática de temporários, "Você quis dizer...?" |
 | 🖥️ 24h | `bash scripts/setup-vps.sh` instala tudo numa VPS e cria o serviço `scarlett-bot` |

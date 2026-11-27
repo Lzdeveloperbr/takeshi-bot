@@ -8,6 +8,7 @@ export default {
   description: "Faço o download de vídeos do Facebook",
   commands: ["facebook", "face", "fb"],
   usage: `${PREFIX}facebook https://www.facebook.com/reel/123456789012345`,
+  cooldownSeconds: 5,
   /**
    * @param {CommandHandleProps} props
    */

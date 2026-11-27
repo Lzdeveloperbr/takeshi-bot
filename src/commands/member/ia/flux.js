@@ -6,6 +6,7 @@ export default {
   description: "Cria uma imagem usando a IA Flux",
   commands: ["flux"],
   usage: `${PREFIX}flux descrição`,
+  cooldownSeconds: 5,
   /**
    * @param {CommandHandleProps} props
    */

@@ -44,6 +44,7 @@ export default {
   description: `Cria uma figurinha com som nativa do WhatsApp (até ${MAX_AUDIO_STICKER_SECONDS}s de som).`,
   commands: ["figaudio", "som", "figsom", "sticker-audio", "figurinha-audio"],
   usage: `${PREFIX}som (envie ou responda a um vídeo com som) ou ${PREFIX}som em uma imagem e depois em um áudio`,
+  cooldownSeconds: 5,
   /**
    * Formas de uso:
    * - Vídeo com som: envie o vídeo com /som na legenda ou responda a ele com

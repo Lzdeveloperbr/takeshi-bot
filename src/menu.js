@@ -26,8 +26,11 @@ export function menuMessage(groupJid) {
 
 ╭━━⪩ DONO ⪨━━
 ▢
+▢ • ${prefix}backup
+▢ • ${prefix}bc
 ▢ • ${prefix}exec
 ▢ • ${prefix}get-group-id
+▢ • ${prefix}grupos
 ▢ • ${prefix}diagnostico
 ▢ • ${prefix}off
 ▢ • ${prefix}on
@@ -112,6 +115,7 @@ export function menuMessage(groupJid) {
 ▢ • ${prefix}raw-message
 ▢ • ${prefix}rename
 ▢ • ${prefix}removebg
+▢ • ${prefix}report (falar com o dono)
 ▢ • ${prefix}sticker
 ▢ • ${prefix}som (figurinha com som)
 ▢ • ${prefix}suporte
@@ -393,6 +397,7 @@ const MENU_SECTIONS = [
     title: "ℹ️ Bot e grupo",
     rows: [
       { title: "Informações do grupo", run: "grupo" },
+      { title: "Falar com o dono", info: "report" },
       { title: "Criar enquete", info: "enquete" },
       { title: "Biscoito da sorte", run: "biscoito" },
       { title: "Foto de cachorro", run: "cachorro" },

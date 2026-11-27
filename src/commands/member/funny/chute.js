@@ -10,6 +10,7 @@ export default {
   description: "Chuta um número no jogo adivinhar.",
   commands: ["chute", "chutar"],
   usage: `${PREFIX}chute 50`,
+  cooldownSeconds: 1,
   /**
    * @param {CommandHandleProps} props
    */

@@ -2,6 +2,9 @@
  * Anti-flood: intervalo mínimo entre comandos da mesma pessoa no mesmo chat.
  * Evita que alguém faça o bot enviar dezenas de mensagens seguidas
  * (o que aumenta o risco de banimento do número).
+ *
+ * Um comando pode definir o próprio intervalo com `cooldownSeconds`
+ * (ex.: jogos usam 1 segundo para dar para jogar rápido).
  */
 export const COMMAND_COOLDOWN_MS = 3_000;
 
@@ -22,16 +25,16 @@ function prune(now) {
 /**
  * @returns {{ allowed: boolean, remainingSeconds: number, shouldWarn: boolean }}
  */
-export function checkCommandCooldown(key, now = Date.now()) {
+export function checkCommandCooldown(key, now = Date.now(), cooldownMs = COMMAND_COOLDOWN_MS) {
   const last = lastUse.get(key);
 
-  if (last !== undefined && now - last < COMMAND_COOLDOWN_MS) {
+  if (last !== undefined && now - last < cooldownMs) {
     const shouldWarn = warned.get(key) !== last;
     warned.set(key, last);
 
     return {
       allowed: false,
-      remainingSeconds: Math.ceil((COMMAND_COOLDOWN_MS - (now - last)) / 1000),
+      remainingSeconds: Math.ceil((cooldownMs - (now - last)) / 1000),
       shouldWarn,
     };
   }
