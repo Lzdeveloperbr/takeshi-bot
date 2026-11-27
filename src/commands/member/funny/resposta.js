@@ -1,6 +1,7 @@
 import { PREFIX } from "../../../config.js";
 import { InvalidParameterError, WarningError } from "../../../errors/index.js";
 import { getPrefix } from "../../../utils/database.js";
+import { addCoins, formatCoins } from "../../../utils/economy.js";
 import { addPoint, endGame, getGame } from "../../../utils/games.js";
 import { onlyNumbers } from "../../../utils/index.js";
 import { LETTERS } from "./quiz.js";
@@ -40,10 +41,11 @@ export default {
 
     endGame(remoteJid, "quiz");
     const points = addPoint(remoteJid, userLid);
+    addCoins(remoteJid, userLid, 50);
 
     await sendReact("✅");
     await sendText(
-      `✅ ${tag} acertou! A resposta era *${LETTERS[game.correct]}) ${game.options[game.correct]}*\n🏅 Pontos: *${points}*\n\nVeja o ranking com ${getPrefix(remoteJid)}placar`,
+      `✅ ${tag} acertou! A resposta era *${LETTERS[game.correct]}) ${game.options[game.correct]}*\n🏅 Pontos: *${points}* | 💰 +${formatCoins(50)}\n\nVeja o ranking com ${getPrefix(remoteJid)}placar`,
       [userLid],
     );
   },

@@ -47,6 +47,7 @@ function restoreFiles() {
 before(() => {
   backupFile("muted.json");
   backupFile("banned-words.json");
+  backupFile("economy.json");
 });
 
 after(restoreFiles);

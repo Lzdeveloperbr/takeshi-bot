@@ -25,6 +25,8 @@ const GROUP_RESTRICTIONS_FILE = "group-restrictions";
 const GROUP_RULES_FILE = "group-rules";
 const ACTIVITY_FILE = "activity";
 const BANNED_WORDS_FILE = "banned-words";
+const ECONOMY_FILE = "economy";
+const DISABLED_COMMANDS_FILE = "disabled-commands";
 const INACTIVE_GROUPS_FILE = "inactive-groups";
 const MUTE_FILE = "muted";
 const ONLY_ADMINS_FILE = "only-admins";
@@ -696,6 +698,76 @@ export function removeBannedWord(groupId, word) {
 
   bannedWords[groupId] = list.filter((item) => item !== normalized);
   writeJSON(BANNED_WORDS_FILE, bannedWords, {});
+
+  return true;
+}
+
+/**
+ * Carteira de moedas de um membro no grupo.
+ * @returns {{ coins: number, lastDaily: number, streak: number }}
+ */
+export function getWallet(groupId, memberId) {
+  const economy = readJSON(ECONOMY_FILE, {});
+
+  return { coins: 0, lastDaily: 0, streak: 0, ...(economy[groupId]?.[memberId] || {}) };
+}
+
+/**
+ * Altera carteiras de forma atômica (lê, aplica e grava de uma vez).
+ * @param {string} groupId
+ * @param {(wallets: Record<string, {coins: number, lastDaily: number, streak: number}>) => any} change
+ */
+export function updateWallets(groupId, change) {
+  const economy = readJSON(ECONOMY_FILE, {});
+  const wallets = economy[groupId] || {};
+
+  const proxy = new Proxy(wallets, {
+    get(target, memberId) {
+      if (typeof memberId !== "string") return target[memberId];
+
+      // Cria a carteira só uma vez (e completa campos de versões antigas).
+      if (!target[memberId] || target[memberId].coins === undefined) {
+        target[memberId] = { coins: 0, lastDaily: 0, streak: 0, ...(target[memberId] || {}) };
+      }
+
+      return target[memberId];
+    },
+  });
+
+  const result = change(proxy);
+
+  economy[groupId] = wallets;
+  writeJSON(ECONOMY_FILE, economy, {});
+
+  return result;
+}
+
+export function getGroupWallets(groupId) {
+  const economy = readJSON(ECONOMY_FILE, {});
+
+  return economy[groupId] || {};
+}
+
+export function getDisabledCommands(groupId) {
+  const disabled = readJSON(DISABLED_COMMANDS_FILE, {});
+
+  return disabled[groupId] || [];
+}
+
+/** @returns {boolean} false se já estava no estado pedido. */
+export function setCommandDisabled(groupId, commandName, isDisabled) {
+  const disabled = readJSON(DISABLED_COMMANDS_FILE, {});
+  const list = new Set(disabled[groupId] || []);
+
+  if (list.has(commandName) === isDisabled) {
+    return false;
+  }
+
+  if (isDisabled) list.add(commandName);
+  else list.delete(commandName);
+
+  disabled[groupId] = [...list];
+  writeJSON(DISABLED_COMMANDS_FILE, disabled, {});
 
   return true;
 }
