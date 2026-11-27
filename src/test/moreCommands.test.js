@@ -71,3 +71,34 @@ describe("consultas (formatação)", () => {
     assert.strictEqual(onlyDigits("00.000.000/0001-91"), "00000000000191");
   });
 });
+
+describe("comandos extras", async () => {
+  const { toMorse, fromMorse } = await import("../commands/member/texto/morse.js");
+  const { toBinary, fromBinary } = await import("../commands/member/texto/binario.js");
+  const { upsideDown } = await import("../commands/member/texto/fonte.js");
+  const { calculateImc } = await import("../commands/member/utilidades/imc.js");
+  const { parseDice } = await import("../commands/member/funny/rolar.js");
+
+  it("morse e binário vão e voltam", () => {
+    assert.strictEqual(toMorse("SOS"), "... --- ...");
+    assert.strictEqual(fromMorse(toMorse("bom dia")), "bom dia");
+    assert.strictEqual(fromBinary(toBinary("olá 😀")), "olá 😀");
+  });
+
+  it("texto de cabeça para baixo", () => {
+    assert.strictEqual(upsideDown("abc!"), "¡ɔqɐ");
+  });
+
+  it("IMC nas faixas certas", () => {
+    assert.strictEqual(calculateImc(70, 1.75).label, "Peso normal");
+    assert.strictEqual(calculateImc(50, 1.8).label, "Abaixo do peso");
+    assert.strictEqual(calculateImc(100, 1.7).label, "Obesidade grau I");
+  });
+
+  it("lê dados de RPG", () => {
+    assert.deepStrictEqual(parseDice("2d6+3"), { count: 2, sides: 6, modifier: 3 });
+    assert.deepStrictEqual(parseDice("d20"), { count: 1, sides: 20, modifier: 0 });
+    assert.strictEqual(parseDice("100d6"), null);
+    assert.strictEqual(parseDice("abc"), null);
+  });
+});

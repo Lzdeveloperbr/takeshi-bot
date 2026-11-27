@@ -130,13 +130,17 @@ export function menuMessage(groupJid) {
 ▢ • ${prefix}clima
 ▢ • ${prefix}contar
 ▢ • ${prefix}cotacao
+▢ • ${prefix}dias-ate
+▢ • ${prefix}encurtar
 ▢ • ${prefix}idade
+▢ • ${prefix}imc
 ▢ • ${prefix}lembrete
 ▢ • ${prefix}qrcode
 ▢ • ${prefix}rank
 ▢ • ${prefix}regras
 ▢ • ${prefix}senha
 ▢ • ${prefix}signo
+▢ • ${prefix}traduzir
 ▢ • ${prefix}wiki
 ▢
 ╰━━─「🧰」─━━
@@ -146,6 +150,7 @@ export function menuMessage(groupJid) {
 ▢ • ${prefix}banco
 ▢ • ${prefix}cep
 ▢ • ${prefix}cnpj
+▢ • ${prefix}cripto
 ▢ • ${prefix}ddd
 ▢ • ${prefix}dominio
 ▢ • ${prefix}feriados
@@ -153,6 +158,16 @@ export function menuMessage(groupJid) {
 ▢ • ${prefix}taxas
 ▢
 ╰━━─「🔎」─━━
+
+╭━━⪩ TEXTO ⪨━━
+▢
+▢ • ${prefix}binario
+▢ • ${prefix}fonte
+▢ • ${prefix}letra
+▢ • ${prefix}morse
+▢ • ${prefix}reverso
+▢
+╰━━─「🔤」─━━
 
 ╭━━⪩ DOWNLOADS ⪨━━
 ▢
@@ -173,16 +188,21 @@ export function menuMessage(groupJid) {
 ▢
 ▢ • ${prefix}abracar
 ▢ • ${prefix}beijar
+▢ • ${prefix}biscoito
+▢ • ${prefix}cachorro
 ▢ • ${prefix}cantada
 ▢ • ${prefix}casal-do-dia
+▢ • ${prefix}chance
 ▢ • ${prefix}curiosidade
 ▢ • ${prefix}escolher
 ▢ • ${prefix}eu-nunca
+▢ • ${prefix}gato
 ▢ • ${prefix}jantar
 ▢ • ${prefix}lutar
 ▢ • ${prefix}matar
 ▢ • ${prefix}pergunta
 ▢ • ${prefix}piada
+▢ • ${prefix}pokemon
 ▢ • ${prefix}ship
 ▢ • ${prefix}socar
 ▢ • ${prefix}tapa
@@ -201,6 +221,7 @@ export function menuMessage(groupJid) {
 ▢ • ${prefix}ppt
 ▢ • ${prefix}quiz
 ▢ • ${prefix}r (responder o quiz)
+▢ • ${prefix}rolar (dados de RPG)
 ▢
 ╰━━─「🎮」─━━
 
@@ -285,10 +306,25 @@ const MENU_SECTIONS = [
     ],
   },
   {
+    title: "🔤 Texto e tradução",
+    rows: [
+      { title: "Traduzir", info: "traduzir" },
+      { title: "Fontes diferentes", info: "fonte" },
+      { title: "Letra de música", info: "letra" },
+      { title: "Encurtar link", info: "encurtar" },
+      { title: "Código Morse", info: "morse" },
+      { title: "Binário", info: "binario" },
+      { title: "Texto ao contrário", info: "reverso" },
+      { title: "IMC", info: "imc" },
+      { title: "Quantos dias faltam", info: "dias-ate" },
+    ],
+  },
+  {
     title: "🔎 Consultas",
     rows: [
       { title: "Feriados do ano", run: "feriados" },
       { title: "Taxas Selic/CDI/IPCA", run: "taxas" },
+      { title: "Criptomoedas", run: "cripto" },
       { title: "Empresa pelo CNPJ", info: "cnpj" },
       { title: "CEP", info: "cep" },
       { title: "DDD", info: "ddd" },
@@ -308,6 +344,7 @@ const MENU_SECTIONS = [
       { title: "Pedra, papel e tesoura", run: "ppt pedra" },
       { title: "Cara ou coroa", run: "moeda" },
       { title: "Dado", info: "dado" },
+      { title: "Dados de RPG (d20)", run: "rolar" },
     ],
   },
   {
@@ -321,8 +358,8 @@ const MENU_SECTIONS = [
       { title: "Ship (casal)", info: "ship" },
       { title: "Bola 8 mágica", info: "pergunta" },
       { title: "Escolher entre opções", info: "escolher" },
-      { title: "Número aleatório", run: "aleatorio" },
-      { title: "Signo", info: "signo" },
+      { title: "Pokémon aleatório", run: "pokemon" },
+      { title: "Foto de gato", run: "gato" },
     ],
   },
   {
@@ -330,6 +367,8 @@ const MENU_SECTIONS = [
     rows: [
       { title: "Informações do grupo", run: "grupo" },
       { title: "Criar enquete", info: "enquete" },
+      { title: "Biscoito da sorte", run: "biscoito" },
+      { title: "Foto de cachorro", run: "cachorro" },
       { title: "Ping", run: "ping" },
       { title: "Status do bot", run: "status" },
       { title: "Meu perfil", run: "perfil" },
