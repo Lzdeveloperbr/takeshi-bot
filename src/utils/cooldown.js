@@ -8,17 +8,14 @@
  */
 export const COMMAND_COOLDOWN_MS = 3_000;
 
-const lastUse = new Map();
-const warned = new Map();
+// chave -> { last: momento do último uso, until: até quando está bloqueado }
+const entries = new Map();
 
 function prune(now) {
-  if (lastUse.size < 5_000) return;
+  if (entries.size < 5_000) return;
 
-  for (const [key, time] of lastUse) {
-    if (now - time > COMMAND_COOLDOWN_MS) {
-      lastUse.delete(key);
-      warned.delete(key);
-    }
+  for (const [key, entry] of entries) {
+    if (now >= entry.until) entries.delete(key);
   }
 }
 
@@ -26,26 +23,25 @@ function prune(now) {
  * @returns {{ allowed: boolean, remainingSeconds: number, shouldWarn: boolean }}
  */
 export function checkCommandCooldown(key, now = Date.now(), cooldownMs = COMMAND_COOLDOWN_MS) {
-  const last = lastUse.get(key);
+  const entry = entries.get(key);
 
-  if (last !== undefined && now - last < cooldownMs) {
-    const shouldWarn = warned.get(key) !== last;
-    warned.set(key, last);
+  if (entry && now - entry.last < cooldownMs) {
+    const shouldWarn = !entry.warned;
+    entry.warned = true;
 
     return {
       allowed: false,
-      remainingSeconds: Math.ceil((cooldownMs - (now - last)) / 1000),
+      remainingSeconds: Math.ceil((cooldownMs - (now - entry.last)) / 1000),
       shouldWarn,
     };
   }
 
   prune(now);
-  lastUse.set(key, now);
+  entries.set(key, { last: now, until: now + cooldownMs, warned: false });
 
   return { allowed: true, remainingSeconds: 0, shouldWarn: false };
 }
 
 export function resetCommandCooldowns() {
-  lastUse.clear();
-  warned.clear();
+  entries.clear();
 }

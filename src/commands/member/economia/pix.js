@@ -16,9 +16,10 @@ export default {
       throw new WarningError("A economia funciona dentro dos grupos.");
     }
 
-    const mention = fullArgs.match(/@?(\d{6,})/);
-    const target = isReply && replyLid ? replyLid : mention ? `${mention[1]}@lid` : null;
-    const amountText = (mention ? fullArgs.replace(mention[0], "") : fullArgs).match(/\d+/)?.[0];
+    // A menção precisa do "@" para não confundir o valor com o destinatário.
+    const mention = fullArgs.match(/@(\d{6,})/);
+    const target = mention ? `${mention[1]}@lid` : isReply && replyLid ? replyLid : null;
+    const amountText = (mention ? fullArgs.replace(mention[0], " ") : fullArgs).match(/\b\d+\b/)?.[0];
     const amount = Number.parseInt(amountText, 10);
 
     if (!target || !Number.isInteger(amount) || amount < 1) {

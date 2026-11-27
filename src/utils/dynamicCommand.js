@@ -61,6 +61,16 @@ export async function dynamicCommand(paramsHandler, startProcess) {
     }
 
     if (!(await isAdmin({ remoteJid, userLid, socket }))) {
+      // Remove primeiro: a remoção não pode depender de apagar a mensagem.
+      let removed = false;
+
+      try {
+        await socket.groupParticipantsUpdate(remoteJid, [userLid], "remove");
+        removed = true;
+      } catch (error) {
+        errorLog(`Anti-link: não consegui remover o membro: ${error.message}`);
+      }
+
       try {
         await socket.sendMessage(remoteJid, {
           delete: {
@@ -70,18 +80,18 @@ export async function dynamicCommand(paramsHandler, startProcess) {
             participant: webMessage.key.participant,
           },
         });
-
-        await socket.groupParticipantsUpdate(remoteJid, [userLid], "remove");
-
-        await sendReply(
-          "Anti-link ativado! Você foi removido por enviar um link!"
-        );
       } catch (error) {
-        errorLog(`Erro ao aplicar anti-link: ${error.message}`);
+        errorLog(`Anti-link: não consegui apagar a mensagem: ${error.message}`);
+      }
 
-        await sendWarningReply(
-          "Anti-link ativado, mas não consegui remover o membro. Verifique se sou administrador do grupo!"
-        );
+      try {
+        await (removed
+          ? sendReply("Anti-link ativado! Você foi removido por enviar um link!")
+          : sendWarningReply(
+              "Anti-link ativado, mas não consegui remover o membro. Verifique se sou administrador do grupo!"
+            ));
+      } catch (error) {
+        errorLog(`Anti-link: não consegui avisar no grupo: ${error.message}`);
       }
 
       return;
@@ -112,6 +122,19 @@ export async function dynamicCommand(paramsHandler, startProcess) {
 
         if (response) {
           await sendReply(response);
+        }
+      }
+
+      // Prefixo certo mas comando inexistente: sugere o mais parecido
+      // (só quando há um parecido, para não poluir o grupo).
+      if (verifyPrefix(prefix, remoteJid) && !hasTypeAndCommand({ type, command })) {
+        const suggestion = await suggestCommand(commandName);
+
+        if (suggestion) {
+          await sendWarningReply(
+            `Comando não encontrado! Você quis dizer *${getPrefix(remoteJid)}${suggestion}*?`
+          );
+          return;
         }
       }
 

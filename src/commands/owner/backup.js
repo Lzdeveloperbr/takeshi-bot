@@ -1,6 +1,5 @@
-import fs from "node:fs";
-import path from "node:path";
-import { DATABASE_DIR, OWNER_LID, PREFIX } from "../../config.js";
+import { OWNER_LID, PREFIX } from "../../config.js";
+import { readAllDatabaseFiles } from "../../utils/database.js";
 
 export default {
   name: "backup",
@@ -11,17 +10,7 @@ export default {
    * @param {CommandHandleProps} props
    */
   handle: async ({ socket, userLid, sendSuccessReply }) => {
-    const data = {};
-
-    for (const file of fs.readdirSync(DATABASE_DIR)) {
-      if (!file.endsWith(".json")) continue;
-
-      try {
-        data[file] = JSON.parse(fs.readFileSync(path.join(DATABASE_DIR, file), "utf8"));
-      } catch {
-        data[file] = "(arquivo corrompido)";
-      }
-    }
+    const data = readAllDatabaseFiles();
 
     // Nunca inclui tokens/chaves no backup enviado pelo WhatsApp.
     if (data["config.json"] && typeof data["config.json"] === "object") {

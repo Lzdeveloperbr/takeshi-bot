@@ -828,3 +828,23 @@ export function markBirthdaysCongratulated(groupId, date) {
   birthdays[groupId].lastCongrats = date;
   writeJSON(BIRTHDAYS_FILE, birthdays, {});
 }
+
+/**
+ * Lê todos os arquivos do banco (usado pelo /backup).
+ * @returns {Record<string, any>} nome do arquivo -> conteúdo
+ */
+export function readAllDatabaseFiles() {
+  const data = {};
+
+  for (const file of fs.readdirSync(databasePath)) {
+    if (!file.endsWith(".json")) continue;
+
+    try {
+      data[file] = JSON.parse(fs.readFileSync(path.join(databasePath, file), "utf8"));
+    } catch {
+      data[file] = "(arquivo corrompido)";
+    }
+  }
+
+  return data;
+}

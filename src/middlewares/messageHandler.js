@@ -72,49 +72,6 @@ export async function messageHandler(socket, webMessage) {
       return;
     }
 
-    const memberLid = userLid.replace(/:[0-9]+(?=@)/, "");
-    const memberTag = `@${memberLid.split("@")[0]}`;
-
-    if (antiGroups[remoteJid]?.["anti-palavra"]) {
-      const bannedWord = findBannedWord(
-        getMessageText(webMessage),
-        getBannedWords(remoteJid),
-      );
-
-      if (bannedWord) {
-        await socket.sendMessage(remoteJid, {
-          delete: { remoteJid, fromMe: false, id: messageId, participant: userLid },
-        });
-
-        await socket.sendMessage(remoteJid, {
-          text: `🚫 ${memberTag}, sua mensagem foi apagada por conter uma palavra proibida neste grupo.`,
-          mentions: [memberLid],
-        });
-
-        return;
-      }
-    }
-
-    if (antiGroups[remoteJid]?.["anti-flood"]) {
-      const floodResult = registerMessage(`${remoteJid}:${memberLid}`);
-
-      if (floodResult === "warn") {
-        await socket.sendMessage(remoteJid, {
-          text: `⚠️ ${memberTag}, calma! Você está mandando mensagens rápido demais. Se continuar, será silenciado.`,
-          mentions: [memberLid],
-        });
-      } else if (floodResult === "mute") {
-        muteMember(remoteJid, memberLid);
-
-        await socket.sendMessage(remoteJid, {
-          text: `🔇 ${memberTag} foi silenciado por flood.\nUm admin pode liberar com ${getPrefix(remoteJid)}unmute ${memberTag}`,
-          mentions: [memberLid],
-        });
-
-        return;
-      }
-    }
-
     if (isAntiPaymentActive && hasPaymentMessage(webMessage)) {
       await applyAntiPaymentRestriction({
         socket,
@@ -156,6 +113,14 @@ export async function messageHandler(socket, webMessage) {
       return;
     }
 
+    // Anti-palavra e anti-flood rodam DEPOIS do anti-pagamento e do
+    // anti-status, para não impedir essas punições.
+    if (
+      await applyWordAndFloodRules({ socket, webMessage, remoteJid, userLid, messageId, antiGroups })
+    ) {
+      return;
+    }
+
     const messageType = Object.keys(readRestrictedMessageTypes()).find((type) =>
       hasDirectMedia(webMessage, type),
     );
@@ -183,4 +148,62 @@ export async function messageHandler(socket, webMessage) {
       `Erro ao processar mensagem restrita. Verifique se eu estou como admin do grupo! Detalhes: ${error.message}`,
     );
   }
+}
+
+const STALE_MESSAGE_MS = 2 * 60 * 1000;
+
+/**
+ * Anti-palavra e anti-flood.
+ * @returns {Promise<boolean>} true se a mensagem foi apagada ou o membro silenciado.
+ */
+async function applyWordAndFloodRules({ socket, webMessage, remoteJid, userLid, messageId, antiGroups }) {
+  const memberLid = userLid.replace(/:[0-9]+(?=@)/, "");
+  const memberTag = `@${memberLid.split("@")[0]}`;
+
+  if (antiGroups[remoteJid]?.["anti-palavra"]) {
+    const bannedWord = findBannedWord(
+      getMessageText(webMessage),
+      getBannedWords(remoteJid),
+    );
+
+    if (bannedWord) {
+      await socket.sendMessage(remoteJid, {
+        delete: { remoteJid, fromMe: false, id: messageId, participant: userLid },
+      });
+
+      await socket.sendMessage(remoteJid, {
+        text: `🚫 ${memberTag}, sua mensagem foi apagada por conter uma palavra proibida neste grupo.`,
+        mentions: [memberLid],
+      });
+
+      return true;
+    }
+  }
+
+  // Usa o horário real da mensagem: mensagens acumuladas que chegam de uma
+  // vez depois de uma reconexão não contam como flood.
+  const timestamp = webMessage.messageTimestamp;
+  const sentAt = Number(timestamp?.toNumber?.() ?? timestamp) * 1000 || Date.now();
+
+  if (antiGroups[remoteJid]?.["anti-flood"] && Date.now() - sentAt < STALE_MESSAGE_MS) {
+    const floodResult = registerMessage(`${remoteJid}:${memberLid}`, sentAt);
+
+    if (floodResult === "warn") {
+      await socket.sendMessage(remoteJid, {
+        text: `⚠️ ${memberTag}, calma! Você está mandando mensagens rápido demais. Se continuar, será silenciado.`,
+        mentions: [memberLid],
+      });
+    } else if (floodResult === "mute") {
+      muteMember(remoteJid, memberLid);
+
+      await socket.sendMessage(remoteJid, {
+        text: `🔇 ${memberTag} foi silenciado por flood.\nUm admin pode liberar com ${getPrefix(remoteJid)}unmute ${memberTag}`,
+        mentions: [memberLid],
+      });
+
+      return true;
+    }
+  }
+
+  return false;
 }
