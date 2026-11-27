@@ -1,3 +1,4 @@
+import { clearMediaCache } from "../../utils/mediaCache.js";
 import fs from "node:fs";
 import path from "node:path";
 import { ASSETS_DIR, PREFIX } from "../../config.js";
@@ -51,6 +52,9 @@ export default {
       }
 
       fs.renameSync(tempPath, menuImagePath);
+
+      // A imagem mudou: descarta o upload antigo guardado em cache.
+      clearMediaCache();
 
       await sendSuccessReply("Imagem do menu atulizada com sucesso !");
     } catch (error) {

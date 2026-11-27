@@ -1,5 +1,5 @@
 import os from "node:os";
-import { PREFIX } from "../../config.js";
+import { BOT_NAME, PREFIX } from "../../config.js";
 
 function formatBytes(bytes) {
   return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
@@ -22,7 +22,7 @@ export default {
     const seconds = Math.floor(uptime % 60);
 
     await sendReply(
-      `🛠️ *DIAGNÓSTICO DO TAKESHI BOT*
+      `🛠️ *DIAGNÓSTICO DO ${BOT_NAME.toUpperCase()}*
 
 *Processo*
 • PID: ${process.pid}

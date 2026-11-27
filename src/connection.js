@@ -30,6 +30,7 @@ import pino from "pino";
 import { PREFIX, TEMP_DIR } from "./config.js";
 import { load } from "./loader.js";
 import { badMacHandler } from "./utils/badMacHandler.js";
+import { mediaCache } from "./utils/mediaCache.js";
 import { onlyNumbers, question } from "./utils/index.js";
 import {
   bannerLog,
@@ -64,6 +65,22 @@ const groupMetadataCache = new NodeCache({
   checkperiod: 60,
   useClones: false,
 });
+
+// Lista de aparelhos de cada usuário (usada ao enviar mensagens em grupos).
+// Mantida entre reconexões para não precisar buscar tudo de novo.
+const userDevicesCache = new NodeCache({ stdTTL: 5 * 60, useClones: false });
+
+// Versão do WhatsApp Web: buscada uma vez, para reconectar mais rápido.
+let cachedWaVersion = null;
+
+async function getWaVersion() {
+  if (!cachedWaVersion) {
+    const version = await getWaVersion();
+    cachedWaVersion = version;
+  }
+
+  return cachedWaVersion;
+}
 
 const MAX_RECONNECT_DELAY_MS = 60_000;
 let reconnectAttempts = 0;
@@ -182,7 +199,7 @@ export async function connect() {
 
   const { state, saveCreds } = await useMultiFileAuthState(baileysFolder);
 
-  const { version } = await fetchLatestBaileysVersion();
+  const version = await getWaVersion();
 
   const socket = makeWASocket({
     version,
@@ -202,6 +219,8 @@ export async function connect() {
     msgRetryCounterCache,
     shouldSyncHistoryMessage: () => false,
     cachedGroupMetadata: async (jid) => groupMetadataCache.get(jid),
+    mediaCache,
+    userDevicesCache,
   });
 
   attachGroupMetadataCache(socket);
