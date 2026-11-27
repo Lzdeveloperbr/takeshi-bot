@@ -8,6 +8,7 @@ export default {
   description: "Faço o download de vídeos do TikTok",
   commands: ["tik-tok", "ttk", "tik"],
   usage: `${PREFIX}tik-tok https://www.tiktok.com/@yrrefutavel/video/7359413022483287301`,
+  cooldownSeconds: 5,
   /**
    * @param {CommandHandleProps} props
    */

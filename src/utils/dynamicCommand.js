@@ -208,7 +208,13 @@ export async function dynamicCommand(paramsHandler, startProcess) {
   }
 
   if (!isBotOwner({ userLid })) {
-    const cooldown = checkCommandCooldown(`${remoteJid}:${userLid}`);
+    const cooldown = checkCommandCooldown(
+      `${remoteJid}:${userLid}`,
+      Date.now(),
+      Number.isFinite(command.cooldownSeconds)
+        ? command.cooldownSeconds * 1000
+        : undefined
+    );
 
     if (!cooldown.allowed) {
       if (cooldown.shouldWarn) {

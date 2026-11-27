@@ -15,6 +15,7 @@ export default {
     "ttk-mp3",
   ],
   usage: `${PREFIX}tik-tok-audio https://www.tiktok.com/@topicoquiz/video/7384803418855984389`,
+  cooldownSeconds: 5,
   /**
    * @param {CommandHandleProps} props
    */

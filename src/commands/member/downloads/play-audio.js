@@ -11,6 +11,7 @@ export default {
   description: "Faço o download de músicas",
   commands: ["play-audio", "play", "pa"],
   usage: `${PREFIX}play-audio MC Hariel`,
+  cooldownSeconds: 5,
   /**
    * @param {CommandHandleProps} props
    */

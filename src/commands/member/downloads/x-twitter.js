@@ -10,6 +10,7 @@ export default {
   description: "Faço o download de vídeos ou imagens do X (Twitter)",
   commands: ["xtwitter", "twitter", "x"],
   usage: `${PREFIX}xtwitter https://x.com/usuario/status/1234567890`,
+  cooldownSeconds: 5,
   /**
    * @param {CommandHandleProps} props
    */

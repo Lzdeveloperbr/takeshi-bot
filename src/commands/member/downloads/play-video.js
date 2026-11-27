@@ -8,6 +8,7 @@ export default {
   description: "Faço o download de vídeos",
   commands: ["play-video", "pv"],
   usage: `${PREFIX}play-video MC Hariel`,
+  cooldownSeconds: 5,
   /**
    * @param {CommandHandleProps} props
    */

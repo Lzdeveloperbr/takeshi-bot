@@ -78,6 +78,7 @@ export default {
   description: "Jogo da forca: adivinhe a palavra letra por letra.",
   commands: ["forca", "hangman"],
   usage: `${PREFIX}forca (começa) | ${PREFIX}forca a (letra) | ${PREFIX}forca palavra (chuta a palavra)`,
+  cooldownSeconds: 1,
   /**
    * @param {CommandHandleProps} props
    */

@@ -9,6 +9,7 @@ export default {
   description: "Busco imagens no Pinterest e envio separadamente.",
   commands: ["pinterest", "pin"],
   usage: `${PREFIX}pinterest gatos fofos`,
+  cooldownSeconds: 5,
   /**
    * @param {CommandHandleProps} props
    */
