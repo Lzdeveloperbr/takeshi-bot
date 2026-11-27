@@ -91,3 +91,16 @@ describe("alternativas gratuitas", () => {
     assert.strictEqual(parts.join(" "), "palavra ".repeat(100).trim());
   });
 });
+
+describe("segurança do yt-dlp", () => {
+  it("recusa texto que não é link (evita passar opções ao yt-dlp)", async () => {
+    await assert.rejects(free.ytDlpDownload("--batch-file=/etc/passwd"), /link válido/);
+    await assert.rejects(free.ytDlpDownload("file:///etc/passwd"), /link válido/);
+    await assert.rejects(spider.download("yt-mp4", "--exec rm youtube"), /link válido/);
+  });
+
+  it("aceita links e pesquisas", () => {
+    assert.strictEqual(free.assertSafeTarget(" https://youtu.be/x "), "https://youtu.be/x");
+    assert.strictEqual(free.assertSafeTarget("ytsearch1:música -teste"), "ytsearch1:música -teste");
+  });
+});

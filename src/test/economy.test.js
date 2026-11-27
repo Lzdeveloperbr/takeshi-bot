@@ -112,3 +112,38 @@ describe("comandos desativados", () => {
     assert.deepStrictEqual(getDisabledCommands(group), []);
   });
 });
+
+describe("/pix", async () => {
+  const { default: pix } = await import("../commands/member/economia/pix.js");
+  const group = "pix-teste@g.us";
+
+  async function run(fullArgs, extra = {}) {
+    let sent;
+    await pix.handle({
+      isGroup: true,
+      remoteJid: group,
+      userLid: "pagador@lid",
+      fullArgs,
+      isReply: false,
+      sendText: async (text, mentions) => (sent = { text, mentions }),
+      ...extra,
+    });
+    return sent;
+  }
+
+  it("valor antes da menção não vira destinatário", async () => {
+    addCoins(group, "pagador@lid", 2_000_000);
+    const sent = await run("1000000 @5511999999999");
+    assert.deepStrictEqual(sent.mentions, ["pagador@lid", "5511999999999@lid"]);
+    assert.strictEqual(getBalance(group, "5511999999999@lid"), 1_000_000);
+  });
+
+  it("sem menção nem resposta, mostra o uso", async () => {
+    await assert.rejects(run("100000"), /Use:/);
+  });
+
+  it("respondendo a alguém", async () => {
+    await run("50", { isReply: true, replyLid: "amigo@lid" });
+    assert.strictEqual(getBalance(group, "amigo@lid"), 50);
+  });
+});

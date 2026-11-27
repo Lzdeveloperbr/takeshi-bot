@@ -177,3 +177,15 @@ describe("backup do dono", () => {
     }
   });
 });
+
+describe("limpeza do anti-flood", () => {
+  it("não apaga um intervalo longo antes da hora, mesmo com muitos usuários", () => {
+    resetCommandCooldowns();
+    const t = 9_000_000;
+    checkCommandCooldown("g:report", t, 30_000);
+
+    for (let i = 0; i < 5_100; i++) checkCommandCooldown(`g:user${i}`, t + 4000);
+
+    assert.strictEqual(checkCommandCooldown("g:report", t + 5000, 30_000).allowed, false);
+  });
+});

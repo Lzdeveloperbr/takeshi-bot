@@ -88,7 +88,33 @@ function toResult(info, filePath) {
  * Baixa um vídeo/áudio com o yt-dlp. Aceita um link ou "ytsearch1:termo".
  * Retorna no mesmo formato da Spider X (url/download_link = arquivo local).
  */
+/**
+ * Só aceita links http(s) ou pesquisas "ytsearchN:". Qualquer outra coisa
+ * (ex.: texto começando com "-") poderia ser lido como opção do yt-dlp.
+ */
+export function assertSafeTarget(target) {
+  const value = String(target || "").trim();
+
+  if (/^ytsearch\d*:/.test(value)) {
+    return value;
+  }
+
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new FreeApiError("Envie um link válido começando com https://");
+  }
+
+  if (!["http:", "https:"].includes(url.protocol)) {
+    throw new FreeApiError("Envie um link válido começando com https://");
+  }
+
+  return url.href;
+}
+
 export async function ytDlpDownload(target, { audio = false } = {}) {
+  const safeTarget = assertSafeTarget(target);
   const outputTemplate = path.resolve(TEMP_DIR, `${getRandomName()}.%(ext)s`);
 
   const formatArgs = audio
@@ -111,7 +137,8 @@ export async function ytDlpDownload(target, { audio = false } = {}) {
     "%(.{title,description,duration,channel,uploader,thumbnail})j",
     "--print",
     "after_move:filepath",
-    target,
+    "--",
+    safeTarget,
   ]);
 
   const lines = stdout.trim().split("\n").filter(Boolean);
@@ -147,7 +174,7 @@ function formatDuration(seconds) {
 }
 
 export async function ytDlpSearch(search, limit = 5) {
-  const stdout = await runYtDlp(["--flat-playlist", "-J", `ytsearch${limit}:${search}`]);
+  const stdout = await runYtDlp(["--flat-playlist", "-J", "--", `ytsearch${limit}:${search}`]);
   const { entries = [] } = JSON.parse(stdout);
 
   return entries.map((entry) => ({
