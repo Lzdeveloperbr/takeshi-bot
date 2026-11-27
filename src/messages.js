@@ -12,6 +12,10 @@
  */
 export const welcomeMessage =
   "Seja bem-vindo(a) ao *@group*, @member! 🎉\nAgora somos @count membros. Leia as regras com @prefixregras.";
+// Envia a foto de perfil de quem entrou junto com as boas-vindas
+// (se a pessoa não tiver foto ou ela for privada, envia só o texto).
+export const welcomeWithPhoto = true;
+
 export const exitMessage =
   "Poxa, @member saiu do grupo... Sentiremos sua falta!";
 

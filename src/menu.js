@@ -75,6 +75,7 @@ export function menuMessage(groupJid) {
 ▢ • ${prefix}fechar
 ▢ • ${prefix}inativos
 ▢ • ${prefix}hidetag
+▢ • ${prefix}horario-grupo
 ▢ • ${prefix}limpar-chat
 ▢ • ${prefix}link-grupo
 ▢ • ${prefix}list-auto-responder
@@ -133,6 +134,7 @@ export function menuMessage(groupJid) {
 ▢
 ▢ • ${prefix}admins
 ▢ • ${prefix}aleatorio
+▢ • ${prefix}aniversariantes
 ▢ • ${prefix}calc
 ▢ • ${prefix}clima
 ▢ • ${prefix}contar
@@ -142,6 +144,7 @@ export function menuMessage(groupJid) {
 ▢ • ${prefix}idade
 ▢ • ${prefix}imc
 ▢ • ${prefix}lembrete
+▢ • ${prefix}niver
 ▢ • ${prefix}qrcode
 ▢ • ${prefix}nivel
 ▢ • ${prefix}rank
@@ -398,6 +401,7 @@ const MENU_SECTIONS = [
     rows: [
       { title: "Informações do grupo", run: "grupo" },
       { title: "Falar com o dono", info: "report" },
+      { title: "Próximos aniversários", run: "aniversariantes" },
       { title: "Criar enquete", info: "enquete" },
       { title: "Biscoito da sorte", run: "biscoito" },
       { title: "Foto de cachorro", run: "cachorro" },

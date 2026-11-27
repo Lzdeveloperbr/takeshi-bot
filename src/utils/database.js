@@ -27,6 +27,8 @@ const ACTIVITY_FILE = "activity";
 const BANNED_WORDS_FILE = "banned-words";
 const ECONOMY_FILE = "economy";
 const DISABLED_COMMANDS_FILE = "disabled-commands";
+const GROUP_SCHEDULE_FILE = "group-schedule";
+const BIRTHDAYS_FILE = "birthdays";
 const INACTIVE_GROUPS_FILE = "inactive-groups";
 const MUTE_FILE = "muted";
 const ONLY_ADMINS_FILE = "only-admins";
@@ -770,4 +772,59 @@ export function setCommandDisabled(groupId, commandName, isDisabled) {
   writeJSON(DISABLED_COMMANDS_FILE, disabled, {});
 
   return true;
+}
+
+/**
+ * Horários automáticos de fechar/abrir grupos.
+ * @returns {Record<string, { close: string, open: string, lastClose?: string, lastOpen?: string }>}
+ */
+export function getGroupSchedules() {
+  return readJSON(GROUP_SCHEDULE_FILE, {});
+}
+
+/** @param {{ close: string, open: string } | null} schedule null remove o horário. */
+export function setGroupSchedule(groupId, schedule) {
+  const schedules = readJSON(GROUP_SCHEDULE_FILE, {});
+
+  if (schedule) schedules[groupId] = { ...schedule };
+  else delete schedules[groupId];
+
+  writeJSON(GROUP_SCHEDULE_FILE, schedules, {});
+}
+
+export function markGroupScheduleRun(groupId, field, date) {
+  const schedules = readJSON(GROUP_SCHEDULE_FILE, {});
+
+  if (!schedules[groupId]) return;
+
+  schedules[groupId][field] = date;
+  writeJSON(GROUP_SCHEDULE_FILE, schedules, {});
+}
+
+/**
+ * Aniversários por grupo.
+ * @returns {Record<string, { members: Record<string, { day: number, month: number }>, lastCongrats?: string }>}
+ */
+export function getBirthdays() {
+  return readJSON(BIRTHDAYS_FILE, {});
+}
+
+/** @param {{ day: number, month: number } | null} date null remove. */
+export function setBirthday(groupId, memberId, date) {
+  const birthdays = readJSON(BIRTHDAYS_FILE, {});
+  birthdays[groupId] ??= { members: {} };
+
+  if (date) birthdays[groupId].members[memberId] = { day: date.day, month: date.month };
+  else delete birthdays[groupId].members[memberId];
+
+  writeJSON(BIRTHDAYS_FILE, birthdays, {});
+}
+
+export function markBirthdaysCongratulated(groupId, date) {
+  const birthdays = readJSON(BIRTHDAYS_FILE, {});
+
+  if (!birthdays[groupId]) return;
+
+  birthdays[groupId].lastCongrats = date;
+  writeJSON(BIRTHDAYS_FILE, birthdays, {});
 }
