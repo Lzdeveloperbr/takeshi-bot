@@ -174,3 +174,13 @@ export const QUIZ = [
   ["Qual é a fórmula da água?", ["H2O", "CO2", "O2"], 0],
   ["Quantas cores tem o arco-íris?", ["6", "7", "8"], 1],
 ];
+
+/** Palavras da forca por categoria (sem acentos fica mais fácil de jogar). */
+export const FORCA = {
+  Animal: ["elefante", "girafa", "tartaruga", "papagaio", "jacare", "tubarao", "borboleta", "cachorro", "pinguim", "capivara", "macaco", "golfinho", "coruja", "camaleao", "tamandua"],
+  Fruta: ["abacaxi", "melancia", "morango", "banana", "laranja", "maracuja", "jabuticaba", "goiaba", "pitanga", "acerola", "abacate", "framboesa"],
+  "Objeto": ["guarda-chuva", "ventilador", "geladeira", "computador", "travesseiro", "escova", "bicicleta", "relogio", "televisao", "liquidificador", "tesoura", "cadeira"],
+  "País": ["brasil", "argentina", "portugal", "japao", "canada", "australia", "alemanha", "mexico", "egito", "noruega", "italia", "colombia"],
+  Profissão: ["medico", "professor", "bombeiro", "engenheiro", "cozinheiro", "advogado", "dentista", "jornalista", "programador", "astronauta", "veterinario", "motorista"],
+  Comida: ["feijoada", "brigadeiro", "pastel", "coxinha", "lasanha", "pipoca", "tapioca", "acaraje", "churrasco", "hamburguer", "macarrao", "panqueca"],
+};

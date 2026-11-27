@@ -22,6 +22,7 @@ import { processAutoSticker } from "../services/sticker.js";
 import { badMacHandler } from "./badMacHandler.js";
 import {
   getAutoResponderResponse,
+  getDisabledCommands,
   getPrefix,
   isActiveAntiLinkGroup,
   isActiveAutoResponderGroup,
@@ -190,6 +191,19 @@ export async function dynamicCommand(paramsHandler, startProcess) {
         : `Comando não encontrado! Use ${groupPrefix}menu para ver os comandos disponíveis!`
     );
 
+    return;
+  }
+
+  if (
+    type === "member" &&
+    remoteJid?.endsWith("@g.us") &&
+    getDisabledCommands(remoteJid).includes(command.name) &&
+    !isBotOwner({ userLid }) &&
+    !(await isAdmin({ remoteJid, userLid, socket }))
+  ) {
+    await sendWarningReply(
+      `O comando ${groupPrefix}${commandName} está desativado neste grupo pelos admins.`
+    );
     return;
   }
 

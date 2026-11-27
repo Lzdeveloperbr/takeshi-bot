@@ -1,6 +1,7 @@
 import { PREFIX } from "../../../config.js";
 import { InvalidParameterError, WarningError } from "../../../errors/index.js";
 import { getPrefix } from "../../../utils/database.js";
+import { addCoins, formatCoins } from "../../../utils/economy.js";
 import { addPoint, endGame, getGame } from "../../../utils/games.js";
 import { onlyNumbers } from "../../../utils/index.js";
 
@@ -41,10 +42,11 @@ export default {
 
     endGame(remoteJid, "adivinhar");
     const points = addPoint(remoteJid, userLid, 3);
+    addCoins(remoteJid, userLid, 100);
 
     await sendReact("🎉");
     await sendText(
-      `🎉 @${onlyNumbers(userLid)} acertou! O número era *${game.number}* (${game.attempts} chute(s) no total).\n🏅 Pontos: *${points}*`,
+      `🎉 @${onlyNumbers(userLid)} acertou! O número era *${game.number}* (${game.attempts} chute(s) no total).\n🏅 Pontos: *${points}* | 💰 +${formatCoins(100)}`,
       [userLid],
     );
   },

@@ -60,10 +60,13 @@ export function menuMessage(groupJid) {
 ▢ • ${prefix}anti-status-grupo (1/0)
 ▢ • ${prefix}anti-video (1/0)
 ▢ • ${prefix}auto-responder (1/0)
+▢ • ${prefix}ativar-cmd
 ▢ • ${prefix}auto-sticker (1/0)
 ▢ • ${prefix}ban
+▢ • ${prefix}cmds-desativados
 ▢ • ${prefix}delete
 ▢ • ${prefix}delete-auto-responder
+▢ • ${prefix}desativar-cmd
 ▢ • ${prefix}del-palavra
 ▢ • ${prefix}exit (1/0)
 ▢ • ${prefix}fechar
@@ -136,6 +139,7 @@ export function menuMessage(groupJid) {
 ▢ • ${prefix}imc
 ▢ • ${prefix}lembrete
 ▢ • ${prefix}qrcode
+▢ • ${prefix}nivel
 ▢ • ${prefix}rank
 ▢ • ${prefix}regras
 ▢ • ${prefix}senha
@@ -211,11 +215,22 @@ export function menuMessage(groupJid) {
 ▢
 ╰━━─「🎡」─━━
 
+╭━━⪩ ECONOMIA ⪨━━
+▢
+▢ • ${prefix}apostar
+▢ • ${prefix}carteira
+▢ • ${prefix}diario
+▢ • ${prefix}pix
+▢ • ${prefix}ricos
+▢
+╰━━─「💰」─━━
+
 ╭━━⪩ JOGOS ⪨━━
 ▢
 ▢ • ${prefix}adivinhar
 ▢ • ${prefix}chute
 ▢ • ${prefix}dado
+▢ • ${prefix}forca
 ▢ • ${prefix}moeda
 ▢ • ${prefix}placar
 ▢ • ${prefix}ppt
@@ -334,10 +349,22 @@ const MENU_SECTIONS = [
     ],
   },
   {
+    title: "💰 Economia",
+    rows: [
+      { title: "Resgatar moedas do dia", run: "diario" },
+      { title: "Minha carteira", run: "carteira" },
+      { title: "Mais ricos do grupo", run: "ricos" },
+      { title: "Apostar moedas", info: "apostar" },
+      { title: "Transferir moedas", info: "pix" },
+      { title: "Meu nível", run: "nivel" },
+    ],
+  },
+  {
     title: "🎮 Jogos",
     rows: [
       { title: "Quiz", run: "quiz" },
       { title: "Adivinhe o número", run: "adivinhar" },
+      { title: "Forca", run: "forca" },
       { title: "Placar dos jogos", run: "placar" },
       { title: "Verdade ou desafio", run: "vd" },
       { title: "Eu nunca", run: "eu-nunca" },
