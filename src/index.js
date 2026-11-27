@@ -76,6 +76,7 @@ import { load } from "./loader.js";
 import { badMacHandler } from "./utils/badMacHandler.js";
 import { startTempCleaner } from "./utils/tempCleaner.js";
 import { flushActivity } from "./utils/activity.js";
+import { getCommandIndex } from "./utils/index.js";
 import {
   bannerLog,
   errorLog,
@@ -131,6 +132,11 @@ async function startBot() {
     infoLog("Iniciando meus componentes internos...");
 
     startTempCleaner();
+
+    // Carrega o índice de comandos já na inicialização (o 1º comando responde mais rápido).
+    getCommandIndex().catch((error) =>
+      errorLog(`Erro ao carregar comandos: ${error.message}`),
+    );
 
     const stats = badMacHandler.getStats();
     if (stats.errorCount > 0) {

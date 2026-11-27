@@ -1,5 +1,5 @@
 import path from "node:path";
-import { ASSETS_DIR, BOT_NAME, PREFIX } from "../../config.js";
+import { ASSETS_DIR, BOT_EMOJI, BOT_NAME, PREFIX } from "../../config.js";
 import { menuButtons, menuMessage } from "../../menu.js";
 import { sendButtons } from "../../utils/buttons.js";
 import { errorLog } from "../../utils/logger.js";
@@ -12,13 +12,19 @@ export default {
   /**
    * @param {CommandHandleProps} props
    */
-  handle: async ({ remoteJid, socket, webMessage, sendSuccessReact, sendImageFromFile }) => {
+  handle: async ({ remoteJid, socket, webMessage, sendSuccessReact }) => {
     await sendSuccessReact();
 
     // Menu em texto: aparece para todos, inclusive no WhatsApp Business.
-    await sendImageFromFile(
-      path.join(ASSETS_DIR, "images", "takeshi-bot.png"),
-      `\n\n${menuMessage(remoteJid)}`,
+    // Enviado pelo caminho do arquivo para o Baileys reaproveitar o upload
+    // (o banner sobe uma vez só, os próximos /menu saem bem mais rápido).
+    await socket.sendMessage(
+      remoteJid,
+      {
+        image: { url: path.join(ASSETS_DIR, "images", "takeshi-bot.png") },
+        caption: `${BOT_EMOJI} \n\n${menuMessage(remoteJid)}`,
+      },
+      { quoted: JSON.parse(JSON.stringify(webMessage)) },
     );
 
     // Painel com botões logo abaixo (não aparece no WhatsApp Business).

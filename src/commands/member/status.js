@@ -1,5 +1,5 @@
 import os from "node:os";
-import { PREFIX } from "../../config.js";
+import { BOT_NAME, PREFIX } from "../../config.js";
 
 function formatBytes(bytes) {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
@@ -34,7 +34,7 @@ export default {
     const memoryPercent = ((totalMemory - freeMemory) / totalMemory) * 100;
 
     await sendReply(
-      `🖥️ *STATUS DO PROCESSO TAKESHI BOT*
+      `🖥️ *STATUS DO PROCESSO ${BOT_NAME.toUpperCase()}*
 
 ⏱️ *Tempo online:* ${formatUptime(process.uptime())}
 ⚙️ *Node.js:* ${process.version}
