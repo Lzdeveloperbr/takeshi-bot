@@ -4,7 +4,7 @@
  *
  * @author Dev Gui
  */
-import { exitMessage, welcomeMessage } from "../messages.js";
+import { exitMessage, welcomeMessage, welcomeWithPhoto } from "../messages.js";
 import {
   getPrefix,
   isActiveExitGroup,
@@ -13,6 +13,18 @@ import {
 } from "../utils/database.js";
 import { extractUserLid, onlyNumbers } from "../utils/index.js";
 import { errorLog } from "../utils/logger.js";
+
+/** Foto de perfil da pessoa (ou null se não tiver / for privada). */
+export async function getProfilePhotoUrl(socket, jid, timeoutMs = 5000) {
+  try {
+    return await Promise.race([
+      socket.profilePictureUrl(jid, "image"),
+      new Promise((resolve) => setTimeout(() => resolve(null), timeoutMs).unref?.()),
+    ]);
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Troca @group pelo nome do grupo, @count pela quantidade de membros
@@ -68,10 +80,13 @@ export async function onGroupParticipantsUpdate({
         mentions.push(userLid);
       }
 
-      await socket.sendMessage(remoteJid, {
-        text: await replaceGroupPlaceholders(finalWelcomeMessage, socket, remoteJid),
-        mentions,
-      });
+      const text = await replaceGroupPlaceholders(finalWelcomeMessage, socket, remoteJid);
+      const photoUrl = welcomeWithPhoto ? await getProfilePhotoUrl(socket, userLid) : null;
+
+      await socket.sendMessage(
+        remoteJid,
+        photoUrl ? { image: { url: photoUrl }, caption: text, mentions } : { text, mentions },
+      );
     } else if (isActiveExitGroup(remoteJid) && action === "remove") {
       const hasMemberMention = exitMessage.includes("@member");
 

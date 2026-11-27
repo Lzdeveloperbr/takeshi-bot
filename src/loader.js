@@ -9,6 +9,7 @@
 import { onCall } from "./middlewares/onCall.js";
 import { onMessagesUpsert } from "./middlewares/onMesssagesUpsert.js";
 import { badMacHandler } from "./utils/badMacHandler.js";
+import { startScheduler } from "./utils/scheduler.js";
 import { errorLog } from "./utils/logger.js";
 
 // Os handlers globais do processo devem ser registrados uma única vez.
@@ -16,6 +17,8 @@ import { errorLog } from "./utils/logger.js";
 let processHandlersRegistered = false;
 
 export function load(socket) {
+  startScheduler(socket);
+
   const safeEventHandler = async (callback, data, eventName) => {
     try {
       await callback(data);
