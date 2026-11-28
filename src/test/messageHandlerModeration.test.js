@@ -111,3 +111,29 @@ describe("messageHandler: ordem das punições", () => {
     assert.match(calls[1][2].text, /palavra proibida/);
   });
 });
+
+describe("messageHandler: retorno para o processamento de comandos", () => {
+  useGroupRestrictionsCleanup(() => {
+    database.updateIsActiveGroupRestriction(remoteJid, "anti-palavra", true);
+    database.addBannedWord(remoteJid, "proibida");
+  });
+
+  it("devolve true quando apaga a mensagem (o comando não roda)", async () => {
+    const calls = [];
+    const moderated = await messageHandler(
+      makeSocket(calls),
+      message(2, Math.floor(Date.now() / 1000), { message: { conversation: "/ship proibida" } }),
+    );
+    assert.strictEqual(moderated, true);
+  });
+
+  it("devolve false para mensagens normais", async () => {
+    const calls = [];
+    const moderated = await messageHandler(
+      makeSocket(calls),
+      message(3, Math.floor(Date.now() / 1000), { message: { conversation: "/ship oi" } }),
+    );
+    assert.strictEqual(moderated, false);
+    assert.deepStrictEqual(calls, []);
+  });
+});
