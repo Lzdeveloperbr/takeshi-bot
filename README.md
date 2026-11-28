@@ -2,7 +2,7 @@
 
 ![Takeshi Bot](./assets/images/takeshi-bot.png)
 
-[![Version](https://img.shields.io/badge/Vers%C3%A3o-8.25.3-blue)](https://github.com/guiireal/takeshi-bot)
+[![Version](https://img.shields.io/badge/Vers%C3%A3o-8.26.0-blue)](https://github.com/guiireal/takeshi-bot)
 [![Tests](https://github.com/guiireal/takeshi-bot-private/actions/workflows/test.yml/badge.svg)](https://github.com/guiireal/takeshi-bot-private/actions/workflows/test.yml)
 
 > Base para bots de WhatsApp multifuncional com diversos comandos prontos.
@@ -19,6 +19,7 @@ Esta versão é baseada no Takeshi Bot (créditos ao [Dev Gui](https://github.co
 | Área | O que tem |
 | --- | --- |
 | 🔊 Figurinhas | `/som`: figurinha com som **nativa** do WhatsApp (vídeo com som, ou imagem + áudio) |
+| 🎛️ Efeitos de áudio | Responda a um áudio/vídeo com `/grave`, `/graveforte`, `/lento`, `/rapido`, `/nightcore`, `/vaporwave`, `/8d`, `/eco`, `/reverb`, `/esquilo`, `/grossa`, `/robo`, `/radio`, `/abafado`, `/alto`, `/reverso-audio` (lista: `/efeitos`) |
 | 🔘 Botões | `/menu` e `/painel` com lista de comandos e atalhos: dá para usar o bot sem digitar |
 | 🔎 Consultas (dados públicos) | `/cnpj`, `/cep`, `/ddd`, `/banco`, `/feriados`, `/isbn`, `/dominio`, `/taxas` (BrasilAPI, grátis) |
 | 🧰 Utilidades | `/calc`, `/clima`, `/cotacao`, `/wiki`, `/qrcode`, `/lembrete`, `/senha`, `/idade`, `/signo`, `/contar`, `/aleatorio`, `/admins` |
