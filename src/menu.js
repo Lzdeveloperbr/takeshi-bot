@@ -170,6 +170,28 @@ export function menuMessage(groupJid) {
 ▢
 ╰━━─「🔎」─━━
 
+╭━━⪩ EFEITOS DE ÁUDIO ⪨━━
+▢ (responda a um áudio ou vídeo)
+▢
+▢ • ${prefix}grave
+▢ • ${prefix}graveforte
+▢ • ${prefix}lento
+▢ • ${prefix}rapido
+▢ • ${prefix}nightcore
+▢ • ${prefix}vaporwave
+▢ • ${prefix}8d
+▢ • ${prefix}eco
+▢ • ${prefix}reverb
+▢ • ${prefix}esquilo
+▢ • ${prefix}grossa
+▢ • ${prefix}robo
+▢ • ${prefix}radio
+▢ • ${prefix}abafado
+▢ • ${prefix}alto
+▢ • ${prefix}reverso-audio
+▢
+╰━━─「🎛️」─━━
+
 ╭━━⪩ TEXTO ⪨━━
 ▢
 ▢ • ${prefix}binario
@@ -301,6 +323,7 @@ const MENU_SECTIONS = [
       { title: "Figurinha de texto (attp)", info: "attp" },
       { title: "Figurinha brat", info: "brat" },
       { title: "Figurinha para imagem", info: "to-image" },
+      { title: "Efeitos de áudio (grave, 8D...)", run: "efeitos" },
     ],
   },
   {
