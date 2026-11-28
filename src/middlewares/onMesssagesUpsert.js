@@ -63,7 +63,15 @@ export async function onMessagesUpsert({ socket, messages, startProcess }) {
 
       // Moderação (anti-pagamento, anti-palavra, anti-flood, anti-mídia...).
       // Se a mensagem foi apagada/punida, o comando dela não é executado.
-      if (webMessage?.message && (await messageHandler(socket, webMessage))) {
+      // Espera no máximo 5s: se o WhatsApp demorar a responder (ex.: dados do
+      // grupo), o comando não fica travado esperando a moderação.
+      if (
+        webMessage?.message &&
+        (await Promise.race([
+          messageHandler(socket, webMessage),
+          new Promise((resolve) => setTimeout(() => resolve(false), 5_000).unref?.()),
+        ]))
+      ) {
         continue;
       }
 
