@@ -138,14 +138,6 @@ export async function dynamicCommand(paramsHandler, startProcess) {
         }
       }
 
-      if (fullMessage.toLocaleLowerCase().includes("prefixo")) {
-        await sendReact(BOT_EMOJI);
-        const groupPrefix = getPrefix(remoteJid);
-        await sendReply(
-          `O padrão é: ${groupPrefix}\nUse ${groupPrefix}menu para ver os comandos disponíveis!`
-        );
-      }
-
       return;
     }
 

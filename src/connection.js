@@ -327,7 +327,7 @@ export async function connect() {
       infoLog("Versão do WhatsApp Web: " + version.join("."));
       successLog(
         `✅ Estou pronto para uso! 
-Verifique o prefixo, digitando a palavra "prefixo" no WhatsApp. 
+Mande ${PREFIX}menu no WhatsApp para ver os comandos.
 O prefixo padrão definido no config.js é ${PREFIX}`,
       );
       badMacHandler.resetErrorCount();
