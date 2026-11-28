@@ -2,10 +2,11 @@ import { createHash } from "node:crypto";
 import { PREFIX } from "../../../config.js";
 import { InvalidParameterError } from "../../../errors/index.js";
 import { onlyNumbers } from "../../../utils/index.js";
+import { getMentionedJids } from "../../../utils/mentions.js";
 
-function toLid(value) {
+function toLid(value, domain = "lid") {
   const digits = onlyNumbers(value || "");
-  return digits ? `${digits}@lid` : null;
+  return digits ? `${digits}@${domain}` : null;
 }
 
 // Resultado fixo para o mesmo casal (não muda a cada vez que roda).
@@ -31,8 +32,13 @@ export default {
   /**
    * @param {CommandHandleProps} props
    */
-  handle: async ({ fullArgs, userLid, replyLid, isReply, sendText, sendReact }) => {
-    const mentioned = (fullArgs?.match(/@?\d{6,}/g) || []).map(toLid).filter(Boolean);
+  handle: async ({ fullArgs, userLid, replyLid, isReply, webMessage, sendText, sendReact }) => {
+    // Prefere as menções reais do WhatsApp; senão, os "@número" digitados.
+    const domain = userLid?.split("@")[1] || "lid";
+    const fromMentions = getMentionedJids(webMessage);
+    const mentioned = fromMentions.length
+      ? fromMentions
+      : (fullArgs?.match(/@\d{6,}/g) || []).map((m) => toLid(m, domain)).filter(Boolean);
 
     let first;
     let second;

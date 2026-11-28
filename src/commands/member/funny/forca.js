@@ -100,13 +100,16 @@ export default {
         errors: 0,
       });
 
-      if (!input) {
-        await sendReact("🪢");
-        await sendReply(
-          `🪢 *JOGO DA FORCA*\n\n${board(game)}\n\nChute uma letra com *${prefix}forca a* ou a palavra inteira com *${prefix}forca palavra*.\nErrar a palavra inteira conta 2 erros. Quem completar ganha *${REWARD}* moedas!`,
-        );
-        return;
-      }
+      // Um chute sem jogo valendo não é aplicado à palavra nova (ninguém a viu ainda).
+      const notice = input
+        ? "Não havia jogo valendo (um jogo termina após 5 minutos sem jogadas). Comecei um novo!\n\n"
+        : "";
+
+      await sendReact("🪢");
+      await sendReply(
+        `${notice}🪢 *JOGO DA FORCA*\n\n${board(game)}\n\nChute uma letra com *${prefix}forca a* ou a palavra inteira com *${prefix}forca palavra*.\nErrar a palavra inteira conta 2 erros. Quem completar ganha *${REWARD}* moedas!`,
+      );
+      return;
     }
 
     if (!input) {

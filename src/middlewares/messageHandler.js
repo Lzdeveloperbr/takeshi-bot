@@ -10,6 +10,7 @@ import {
 } from "../utils/antiPaymentAction.js";
 import { handleQuotedLinkRestriction } from "../utils/quotedLinkAction.js";
 import {
+  checkIfMemberIsMuted,
   getBannedWords,
   getPrefix,
   muteMember,
@@ -27,32 +28,36 @@ import { errorLog } from "../utils/logger.js";
 import { hasPaymentMessage } from "../utils/paymentMessage.js";
 import { isAdmin } from "./index.js";
 
+/**
+ * @returns {Promise<boolean>} true quando ESTA mensagem foi apagada ou o
+ * autor dela foi punido (aí o bot não deve executar o comando dela).
+ */
 export async function messageHandler(socket, webMessage) {
   try {
     if (!webMessage?.key) {
-      return;
+      return false;
     }
 
     const { remoteJid, fromMe, id: messageId } = webMessage.key;
 
     if (!remoteJid?.endsWith("@g.us")) {
-      return;
+      return false;
     }
 
     if (fromMe) {
-      return;
+      return false;
     }
 
     const userLid = webMessage.key?.participant || webMessage.key?.participantAlt;
 
     if (!userLid) {
-      return;
+      return false;
     }
 
     const isBotOrOwner = userLid === OWNER_LID || userLid === BOT_LID;
 
     if (isBotOrOwner) {
-      return;
+      return false;
     }
 
     const antiGroups = readGroupRestrictions();
@@ -63,13 +68,13 @@ export async function messageHandler(socket, webMessage) {
       isAntiLinkActive &&
       (await handleQuotedLinkRestriction({ socket, remoteJid, webMessage }))
     ) {
-      return;
+      return false;
     }
 
     const userIsAdmin = await isAdmin({ remoteJid, userLid, socket });
 
     if (userIsAdmin) {
-      return;
+      return false;
     }
 
     if (isAntiPaymentActive && hasPaymentMessage(webMessage)) {
@@ -85,14 +90,14 @@ export async function messageHandler(socket, webMessage) {
         },
       });
 
-      return;
+      return true;
     }
 
     if (
       isAntiPaymentActive &&
       (await handleQuotedPaymentRestriction({ socket, remoteJid, webMessage }))
     ) {
-      return;
+      return false;
     }
 
     if (
@@ -110,7 +115,7 @@ export async function messageHandler(socket, webMessage) {
           `Erro ao aplicar anti-status-grupo. Verifique se eu estou como admin do grupo! Detalhes: ${error.message}`,
         );
       }
-      return;
+      return true;
     }
 
     // Anti-palavra e anti-flood rodam DEPOIS do anti-pagamento e do
@@ -118,7 +123,7 @@ export async function messageHandler(socket, webMessage) {
     if (
       await applyWordAndFloodRules({ socket, webMessage, remoteJid, userLid, messageId, antiGroups })
     ) {
-      return;
+      return true;
     }
 
     const messageType = Object.keys(readRestrictedMessageTypes()).find((type) =>
@@ -126,13 +131,13 @@ export async function messageHandler(socket, webMessage) {
     );
 
     if (!messageType) {
-      return;
+      return false;
     }
 
     const isAntiActive = !!antiGroups[remoteJid]?.[`anti-${messageType}`];
 
     if (!isAntiActive) {
-      return;
+      return false;
     }
 
     await socket.sendMessage(remoteJid, {
@@ -143,11 +148,15 @@ export async function messageHandler(socket, webMessage) {
         participant: userLid,
       },
     });
+
+    return true;
   } catch (error) {
     errorLog(
       `Erro ao processar mensagem restrita. Verifique se eu estou como admin do grupo! Detalhes: ${error.message}`,
     );
   }
+
+  return false;
 }
 
 const STALE_MESSAGE_MS = 2 * 60 * 1000;
@@ -159,6 +168,20 @@ const STALE_MESSAGE_MS = 2 * 60 * 1000;
 async function applyWordAndFloodRules({ socket, webMessage, remoteJid, userLid, messageId, antiGroups }) {
   const memberLid = userLid.replace(/:[0-9]+(?=@)/, "");
   const memberTag = `@${memberLid.split("@")[0]}`;
+
+  // Quem já está silenciado tem as mensagens apagadas pelo mute; não repete avisos.
+  if (checkIfMemberIsMuted(remoteJid, memberLid)) {
+    return false;
+  }
+
+  // Mensagens antigas (acumuladas durante uma desconexão) não geram punição
+  // nem aviso: só as recentes contam.
+  const timestamp = webMessage.messageTimestamp;
+  const sentAt = Number(timestamp?.toNumber?.() ?? timestamp) * 1000 || Date.now();
+
+  if (Date.now() - sentAt >= STALE_MESSAGE_MS) {
+    return false;
+  }
 
   if (antiGroups[remoteJid]?.["anti-palavra"]) {
     const bannedWord = findBannedWord(
@@ -180,12 +203,8 @@ async function applyWordAndFloodRules({ socket, webMessage, remoteJid, userLid, 
     }
   }
 
-  // Usa o horário real da mensagem: mensagens acumuladas que chegam de uma
-  // vez depois de uma reconexão não contam como flood.
-  const timestamp = webMessage.messageTimestamp;
-  const sentAt = Number(timestamp?.toNumber?.() ?? timestamp) * 1000 || Date.now();
-
-  if (antiGroups[remoteJid]?.["anti-flood"] && Date.now() - sentAt < STALE_MESSAGE_MS) {
+  // Usa o horário real da mensagem para medir o flood.
+  if (antiGroups[remoteJid]?.["anti-flood"]) {
     const floodResult = registerMessage(`${remoteJid}:${memberLid}`, sentAt);
 
     if (floodResult === "warn") {

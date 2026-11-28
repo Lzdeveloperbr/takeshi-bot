@@ -61,8 +61,10 @@ export async function onMessagesUpsert({ socket, messages, startProcess }) {
         recordMessageEnvelope(webMessage, hasPaymentMessage(webMessage));
       }
 
-      if (webMessage?.message) {
-        messageHandler(socket, webMessage);
+      // Moderação (anti-pagamento, anti-palavra, anti-flood, anti-mídia...).
+      // Se a mensagem foi apagada/punida, o comando dela não é executado.
+      if (webMessage?.message && (await messageHandler(socket, webMessage))) {
+        continue;
       }
 
       if (isAtLeastMinutesInPast(timestamp)) {

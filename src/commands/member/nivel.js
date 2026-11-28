@@ -2,6 +2,7 @@ import { PREFIX } from "../../config.js";
 import { WarningError } from "../../errors/index.js";
 import { getActivity } from "../../utils/activity.js";
 import { onlyNumbers } from "../../utils/index.js";
+import { resolveTarget } from "../../utils/mentions.js";
 
 const TITLES = [
   [0, "🥚 Novato"],
@@ -30,12 +31,12 @@ export default {
   /**
    * @param {CommandHandleProps} props
    */
-  handle: async ({ isGroup, remoteJid, userLid, args, isReply, replyLid, sendText, sendReact }) => {
+  handle: async ({ isGroup, remoteJid, userLid, fullArgs, isReply, replyLid, webMessage, sendText, sendReact }) => {
     if (!isGroup) {
       throw new WarningError("Este comando só funciona em grupos.");
     }
 
-    const target = isReply && replyLid ? replyLid : args[0] && onlyNumbers(args[0]) ? `${onlyNumbers(args[0])}@lid` : userLid;
+    const target = resolveTarget({ webMessage, fullArgs, isReply, replyLid, userLid }) || userLid;
     const { members } = getActivity(remoteJid);
     const messages = members[target] || 0;
     const { level, title, progress, missing } = levelFromMessages(messages);

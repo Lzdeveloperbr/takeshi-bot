@@ -6,7 +6,9 @@ export function toBinary(text) {
 }
 
 export function fromBinary(binary) {
-  const bytes = binary.trim().split(/\s+/).map((chunk) => Number.parseInt(chunk, 2));
+  // Junta tudo e divide em grupos de 8 bits (funciona com ou sem espaços).
+  const bits = binary.replace(/\s/g, "");
+  const bytes = bits.match(/.{8}/g).map((chunk) => Number.parseInt(chunk, 2));
   return Buffer.from(bytes).toString("utf8");
 }
 

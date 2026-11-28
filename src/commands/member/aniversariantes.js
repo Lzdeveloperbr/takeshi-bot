@@ -2,15 +2,23 @@ import { PREFIX } from "../../config.js";
 import { WarningError } from "../../errors/index.js";
 import { getBirthdays } from "../../utils/database.js";
 import { onlyNumbers } from "../../utils/index.js";
-import { nowInTimezone } from "../../utils/scheduler.js";
+import { birthdayInYear, nowInTimezone } from "../../utils/scheduler.js";
 
 const MONTHS = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 
-/** Dias até o próximo aniversário (0 = hoje). */
+/** Dias até o próximo aniversário (0 = hoje). Considera 29/02 em anos não bissextos. */
 export function daysUntil(day, month, now) {
-  const today = Date.UTC(2000, now.month - 1, now.day);
-  let next = Date.UTC(2000, month - 1, day);
-  if (next < today) next = Date.UTC(2001, month - 1, day);
+  const year = now.year ?? new Date().getFullYear();
+  const today = Date.UTC(year, now.month - 1, now.day);
+
+  const dateIn = (y) => {
+    const date = birthdayInYear({ day, month }, y);
+    return Date.UTC(y, date.month - 1, date.day);
+  };
+
+  let next = dateIn(year);
+  if (next < today) next = dateIn(year + 1);
+
   return Math.round((next - today) / 86_400_000);
 }
 

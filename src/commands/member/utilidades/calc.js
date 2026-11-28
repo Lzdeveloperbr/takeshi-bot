@@ -76,8 +76,20 @@ function evaluate(expression) {
   };
 
   // power := primary ('^' unary)?   (associativa à direita: 2^3^2 = 2^9)
+  // "50%" (sem número logo depois) é porcentagem: 50% = 0,5. "10%3" é resto.
+  const parsePercent = (value) => {
+    while (peek()?.value === "%") {
+      const next = tokens[pos + 1];
+      const isModulo = next && (next.type === "num" || next.value === "(");
+      if (isModulo) break;
+      take();
+      value /= 100;
+    }
+    return value;
+  };
+
   const parsePower = () => {
-    const base = parsePrimary();
+    const base = parsePercent(parsePrimary());
     if (peek()?.value === "^") {
       take();
       return base ** parseUnary();

@@ -33,6 +33,8 @@ function message(i, timestampSeconds, extra = {}) {
   };
 }
 
+beforeEach(() => database.unmuteMember(remoteJid, userLid));
+
 before(() => {
   for (const name of files) {
     const file = path.join(dbDir, name);
@@ -109,5 +111,59 @@ describe("messageHandler: ordem das punições", () => {
 
     assert.deepStrictEqual(calls[0][2].delete.id, "msg-1");
     assert.match(calls[1][2].text, /palavra proibida/);
+  });
+});
+
+describe("messageHandler: retorno para o processamento de comandos", () => {
+  useGroupRestrictionsCleanup(() => {
+    database.updateIsActiveGroupRestriction(remoteJid, "anti-palavra", true);
+    database.addBannedWord(remoteJid, "proibida");
+  });
+
+  it("devolve true quando apaga a mensagem (o comando não roda)", async () => {
+    const calls = [];
+    const moderated = await messageHandler(
+      makeSocket(calls),
+      message(2, Math.floor(Date.now() / 1000), { message: { conversation: "/ship proibida" } }),
+    );
+    assert.strictEqual(moderated, true);
+  });
+
+  it("devolve false para mensagens normais", async () => {
+    const calls = [];
+    const moderated = await messageHandler(
+      makeSocket(calls),
+      message(3, Math.floor(Date.now() / 1000), { message: { conversation: "/ship oi" } }),
+    );
+    assert.strictEqual(moderated, false);
+    assert.deepStrictEqual(calls, []);
+  });
+});
+
+describe("messageHandler: sem avisos repetidos", () => {
+  useGroupRestrictionsCleanup(() => {
+    database.updateIsActiveGroupRestriction(remoteJid, "anti-flood", true);
+    database.updateIsActiveGroupRestriction(remoteJid, "anti-palavra", true);
+    database.addBannedWord(remoteJid, "proibida");
+  });
+
+  beforeEach(() => resetFloodTracker());
+
+  it("membro já silenciado não gera novos avisos", async () => {
+    database.muteMember(remoteJid, userLid);
+    const calls = [];
+    const now = Math.floor(Date.now() / 1000);
+
+    for (let i = 0; i < 24; i++) await messageHandler(makeSocket(calls), message(i, now));
+
+    assert.deepStrictEqual(calls, []);
+    database.unmuteMember(remoteJid, userLid);
+  });
+
+  it("palavra proibida em mensagem antiga (após reconectar) não gera aviso", async () => {
+    const calls = [];
+    const old = Math.floor(Date.now() / 1000) - 30 * 60;
+    await messageHandler(makeSocket(calls), message(9, old, { message: { conversation: "proibida" } }));
+    assert.deepStrictEqual(calls, []);
   });
 });

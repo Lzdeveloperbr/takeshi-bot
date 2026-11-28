@@ -41,6 +41,7 @@ export function nowInTimezone(date = new Date(), timeZone = TIMEZONE) {
 
   return {
     date: `${parts.year}-${parts.month}-${parts.day}`,
+    year: Number(parts.year),
     day: Number(parts.day),
     month: Number(parts.month),
     minutes: Number(parts.hour) * 60 + Number(parts.minute),
@@ -94,9 +95,21 @@ export async function runGroupSchedules(socket, now) {
   }
 }
 
+export const isLeapYear = (year) => (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+
+/** Em anos não bissextos, quem nasceu em 29/02 comemora em 28/02. */
+export function birthdayInYear({ day, month }, year) {
+  return month === 2 && day === 29 && !isLeapYear(year) ? { day: 28, month: 2 } : { day, month };
+}
+
 export function birthdaysToday(members, now) {
+  const year = now.year ?? new Date().getFullYear();
+
   return Object.entries(members || {})
-    .filter(([, date]) => date.day === now.day && date.month === now.month)
+    .filter(([, date]) => {
+      const { day, month } = birthdayInYear(date, year);
+      return day === now.day && month === now.month;
+    })
     .map(([id]) => id);
 }
 
@@ -133,6 +146,11 @@ async function tick() {
   } catch (error) {
     errorLog(`Erro nas tarefas automáticas: ${error.message}`);
   }
+}
+
+/** Socket da conexão atual (muda a cada reconexão). */
+export function getCurrentSocket() {
+  return currentSocket;
 }
 
 /** Chamado a cada conexão: usa sempre o socket mais recente. */
