@@ -2,6 +2,7 @@ import { PREFIX } from "../../../config.js";
 import { InvalidParameterError, WarningError } from "../../../errors/index.js";
 import { formatCoins, getBalance, transferCoins } from "../../../utils/economy.js";
 import { onlyNumbers } from "../../../utils/index.js";
+import { resolveTarget } from "../../../utils/mentions.js";
 
 export default {
   name: "pix",
@@ -11,15 +12,15 @@ export default {
   /**
    * @param {CommandHandleProps} props
    */
-  handle: async ({ isGroup, remoteJid, userLid, fullArgs, isReply, replyLid, sendText }) => {
+  handle: async ({ isGroup, remoteJid, userLid, fullArgs, isReply, replyLid, webMessage, sendText }) => {
     if (!isGroup) {
       throw new WarningError("A economia funciona dentro dos grupos.");
     }
 
-    // A menção precisa do "@" para não confundir o valor com o destinatário.
-    const mention = fullArgs.match(/@(\d{6,})/);
-    const target = mention ? `${mention[1]}@lid` : isReply && replyLid ? replyLid : null;
-    const amountText = (mention ? fullArgs.replace(mention[0], " ") : fullArgs).match(/\b\d+\b/)?.[0];
+    // Destinatário: quem foi marcado (ou respondido). O valor é o número que
+    // sobra no texto depois de tirar as menções "@número".
+    const target = resolveTarget({ webMessage, fullArgs, isReply, replyLid, userLid });
+    const amountText = fullArgs.replace(/@\d+/g, " ").match(/\b\d+\b/)?.[0];
     const amount = Number.parseInt(amountText, 10);
 
     if (!target || !Number.isInteger(amount) || amount < 1) {

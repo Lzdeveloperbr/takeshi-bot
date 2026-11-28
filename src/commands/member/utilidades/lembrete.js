@@ -1,6 +1,8 @@
 import { PREFIX } from "../../../config.js";
 import { InvalidParameterError, WarningError } from "../../../errors/index.js";
 import { onlyNumbers } from "../../../utils/index.js";
+import { errorLog } from "../../../utils/logger.js";
+import { getCurrentSocket } from "../../../utils/scheduler.js";
 
 const MAX_MINUTES = 24 * 60;
 const MAX_PER_USER = 5;
@@ -18,6 +20,32 @@ function parseDuration(input) {
   return value;
 }
 
+const RETRY_MS = 30_000;
+const MAX_ATTEMPTS = 10;
+
+/**
+ * Envia pela conexão ATUAL (a do momento em que o lembrete foi criado pode
+ * ter caído). Se o bot estiver desconectado, tenta de novo algumas vezes.
+ */
+export async function deliverReminder(remoteJid, userLid, text, attempt = 1, getSocket = getCurrentSocket) {
+  try {
+    const socket = getSocket();
+    if (!socket?.user) throw new Error("desconectado");
+
+    await socket.sendMessage(remoteJid, {
+      text: `⏰ *Lembrete* para @${onlyNumbers(userLid)}:\n\n${text}`,
+      mentions: [userLid],
+    });
+  } catch (error) {
+    if (attempt >= MAX_ATTEMPTS) {
+      errorLog(`Lembrete perdido para ${userLid}: ${error.message}`);
+      return;
+    }
+
+    setTimeout(() => deliverReminder(remoteJid, userLid, text, attempt + 1, getSocket), RETRY_MS).unref?.();
+  }
+}
+
 export default {
   name: "lembrete",
   description: "Cria um lembrete: o bot te marca depois do tempo informado (até 24h).",
@@ -26,7 +54,7 @@ export default {
   /**
    * @param {CommandHandleProps} props
    */
-  handle: async ({ fullArgs, userLid, sendText, sendSuccessReply }) => {
+  handle: async ({ fullArgs, userLid, remoteJid, sendSuccessReply }) => {
     const [durationText, ...rest] = (fullArgs || "").trim().split(/\s+/);
     const minutes = parseDuration(durationText);
     const text = rest.join(" ").trim();
@@ -48,13 +76,9 @@ export default {
 
     activeByUser.set(userLid, active + 1);
 
-    const timer = setTimeout(async () => {
+    const timer = setTimeout(() => {
       activeByUser.set(userLid, Math.max(0, (activeByUser.get(userLid) || 1) - 1));
-      try {
-        await sendText(`⏰ *Lembrete* para @${onlyNumbers(userLid)}:\n\n${text}`, [userLid]);
-      } catch {
-        // Conexão pode ter caído; não há o que fazer.
-      }
+      deliverReminder(remoteJid, userLid, text);
     }, Math.round(minutes * 60_000));
     timer.unref?.();
 
@@ -65,6 +89,6 @@ export default {
           ? `${+minutes.toFixed(1)} min`
           : `${Math.round(minutes * 60)}s`;
 
-    await sendSuccessReply(`Lembrete criado! Vou te avisar em *${label}*.\n_(Lembretes são perdidos se o bot reiniciar.)_`);
+    await sendSuccessReply(`Lembrete criado! Vou te avisar em *${label}*.\n_(Lembretes são perdidos se o bot for reiniciado.)_`);
   },
 };

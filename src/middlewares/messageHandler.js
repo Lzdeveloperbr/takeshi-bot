@@ -10,6 +10,7 @@ import {
 } from "../utils/antiPaymentAction.js";
 import { handleQuotedLinkRestriction } from "../utils/quotedLinkAction.js";
 import {
+  checkIfMemberIsMuted,
   getBannedWords,
   getPrefix,
   muteMember,
@@ -168,6 +169,20 @@ async function applyWordAndFloodRules({ socket, webMessage, remoteJid, userLid, 
   const memberLid = userLid.replace(/:[0-9]+(?=@)/, "");
   const memberTag = `@${memberLid.split("@")[0]}`;
 
+  // Quem já está silenciado tem as mensagens apagadas pelo mute; não repete avisos.
+  if (checkIfMemberIsMuted(remoteJid, memberLid)) {
+    return false;
+  }
+
+  // Mensagens antigas (acumuladas durante uma desconexão) não geram punição
+  // nem aviso: só as recentes contam.
+  const timestamp = webMessage.messageTimestamp;
+  const sentAt = Number(timestamp?.toNumber?.() ?? timestamp) * 1000 || Date.now();
+
+  if (Date.now() - sentAt >= STALE_MESSAGE_MS) {
+    return false;
+  }
+
   if (antiGroups[remoteJid]?.["anti-palavra"]) {
     const bannedWord = findBannedWord(
       getMessageText(webMessage),
@@ -188,12 +203,8 @@ async function applyWordAndFloodRules({ socket, webMessage, remoteJid, userLid, 
     }
   }
 
-  // Usa o horário real da mensagem: mensagens acumuladas que chegam de uma
-  // vez depois de uma reconexão não contam como flood.
-  const timestamp = webMessage.messageTimestamp;
-  const sentAt = Number(timestamp?.toNumber?.() ?? timestamp) * 1000 || Date.now();
-
-  if (antiGroups[remoteJid]?.["anti-flood"] && Date.now() - sentAt < STALE_MESSAGE_MS) {
+  // Usa o horário real da mensagem para medir o flood.
+  if (antiGroups[remoteJid]?.["anti-flood"]) {
     const floodResult = registerMessage(`${remoteJid}:${memberLid}`, sentAt);
 
     if (floodResult === "warn") {

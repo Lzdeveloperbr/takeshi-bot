@@ -2,6 +2,7 @@ import path from "node:path";
 import { ASSETS_DIR, BOT_NAME, PREFIX } from "../../config.js";
 import { menuButtons } from "../../menu.js";
 import { sendButtons } from "../../utils/buttons.js";
+import { errorLog } from "../../utils/logger.js";
 
 export default {
   name: "painel",
@@ -14,14 +15,29 @@ export default {
   handle: async ({ remoteJid, socket, webMessage, sendReact }) => {
     await sendReact("⚡");
 
-    await sendButtons({
-      socket,
+    const imagePath = path.join(ASSETS_DIR, "images", "takeshi-bot.png");
+
+    // Imagem e texto em mensagem normal (aparece até no WhatsApp Business)...
+    await socket.sendMessage(
       remoteJid,
-      image: { url: path.join(ASSETS_DIR, "images", "takeshi-bot.png") },
-      text: `⚡ *Painel do ${BOT_NAME}*\n\nToque em *Escolher comando* e escolha o que quer fazer.\n\n_Os botões não aparecem no WhatsApp Business; nesse caso use ${PREFIX}menu._`,
-      footer: BOT_NAME,
-      buttons: menuButtons(remoteJid),
-      quoted: webMessage,
-    });
+      {
+        image: { url: imagePath },
+        caption: `⚡ *Painel do ${BOT_NAME}*\n\nToque em *Escolher comando* logo abaixo e escolha o que quer fazer.\n\n_Se os botões não aparecerem (WhatsApp Business), use ${PREFIX}menu._`,
+      },
+      { quoted: JSON.parse(JSON.stringify(webMessage)) },
+    );
+
+    // ...e os botões em seguida.
+    try {
+      await sendButtons({
+        socket,
+        remoteJid,
+        text: "📋 Atalhos:",
+        footer: BOT_NAME,
+        buttons: menuButtons(remoteJid),
+      });
+    } catch (error) {
+      errorLog(`Não consegui enviar os botões do painel: ${error.message}`);
+    }
   },
 };

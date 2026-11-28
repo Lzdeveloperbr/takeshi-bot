@@ -57,7 +57,7 @@ describe("horários", () => {
 
   it("usa o horário de Brasília", () => {
     const now = nowInTimezone(new Date("2026-11-27T01:30:00Z"));
-    assert.deepStrictEqual(now, { date: "2026-11-26", day: 26, month: 11, minutes: 22 * 60 + 30 });
+    assert.deepStrictEqual(now, { date: "2026-11-26", year: 2026, day: 26, month: 11, minutes: 22 * 60 + 30 });
   });
 
   it("fecha o grupo no horário e não repete", async () => {
@@ -113,5 +113,19 @@ describe("boas-vindas com foto", () => {
       await getProfilePhotoUrl({ profilePictureUrl: async () => { throw new Error("item-not-found"); } }, "x"),
       null,
     );
+  });
+});
+
+describe("29 de fevereiro", () => {
+  it("é parabenizado em 28/02 em anos não bissextos", () => {
+    const members = { "bissexto@lid": { day: 29, month: 2 } };
+    assert.deepStrictEqual(birthdaysToday(members, { year: 2027, day: 28, month: 2 }), ["bissexto@lid"]);
+    assert.deepStrictEqual(birthdaysToday(members, { year: 2028, day: 28, month: 2 }), []);
+    assert.deepStrictEqual(birthdaysToday(members, { year: 2028, day: 29, month: 2 }), ["bissexto@lid"]);
+  });
+
+  it("conta os dias certos até o aniversário", () => {
+    assert.strictEqual(daysUntil(29, 2, { year: 2027, day: 27, month: 2 }), 1);
+    assert.strictEqual(daysUntil(1, 1, { year: 2026, day: 31, month: 12 }), 1);
   });
 });
